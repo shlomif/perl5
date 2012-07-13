@@ -28,7 +28,7 @@ BEGIN {
     }
 }
 
-plan(34);
+plan(35);
 
 my $rc_filename = '.perldb';
 
@@ -902,6 +902,64 @@ package main;
     );
 }
 
+{
+    my $wrapper = DebugWrap->new(
+        {
+            cmds =>
+            [
+                'l',
+                q/# After l 1/,
+                'l',
+                q/# After l 2/,
+                '-',
+                q/# After -/,
+                'q',
+            ],
+            prog => '../lib/perl5db/t/test-l-statement-1',
+        }
+    );
+
+    my $first_l_out = qr/
+        1==>\s+\$x\ =\ 1;\n
+        2:\s+print\ "1\\n";\n
+        3\s*\n
+        4:\s+\$x\ =\ 2;\n
+        5:\s+print\ "2\\n";\n
+        6\s*\n
+        7:\s+\$x\ =\ 3;\n
+        8:\s+print\ "3\\n";\n
+        9\s*\n
+        10:\s+\$x\ =\ 4;\n
+    /msx;
+
+    my $second_l_out = qr/
+        11:\s+print\ "4\\n";\n
+        12\s*\n
+        13:\s+\$x\ =\ 5;\n
+        14:\s+print\ "5\\n";\n
+        15\s*\n
+        16:\s+\$x\ =\ 6;\n
+        17:\s+print\ "6\\n";\n
+        18\s*\n
+        19:\s+\$x\ =\ 7;\n
+        20:\s+print\ "7\\n";\n
+    /msx;
+    $wrapper->contents_like(
+        qr/
+            ^$first_l_out
+            [^\n]*?DB<\d+>\ \#\ After\ l\ 1\n
+            [\ \t]*\n
+            [^\n]*?DB<\d+>\ l\s*\n
+            $second_l_out
+            [^\n]*?DB<\d+>\ \#\ After\ l\ 2\n
+            [\ \t]*\n
+            [^\n]*?DB<\d+>\ -\s*\n
+            $first_l_out
+            [^\n]*?DB<\d+>\ \#\ After\ -\n
+        /msx,
+        'l followed by l and then followed by -',
+    );
+}
 END {
     1 while unlink ($rc_filename, $out_fn);
 }

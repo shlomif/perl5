@@ -71,7 +71,7 @@
 
 %token <ival> GRAMPROG GRAMEXPR GRAMBLOCK GRAMBARESTMT GRAMFULLSTMT GRAMSTMTSEQ
 
-%token <i_tkval> '{' '}' '[' ']' '-' '+' '$' '@' '%' '*' '&' ';'
+%token <i_tkval> '{' '}' '[' ']' '-' '+' '$' '@' '%' '*' '&' ';' '=' '.'
 
 %token <opval> WORD METHOD FUNCMETH THING PMFUNC PRIVATEREF QWLIST
 %token <opval> FUNC0OP FUNC0SUB UNIOPSUB LSTOPSUB
@@ -85,20 +85,21 @@
 %token <i_tkval> RELOP EQOP MULOP ADDOP
 %token <i_tkval> DOLSHARP DO HASHBRACK NOAMP
 %token <i_tkval> LOCAL MY MYSUB REQUIRE
-%token <i_tkval> COLONATTR
+%token <i_tkval> COLONATTR FORMLBRACK FORMRBRACK
 
 %type <ival> grammar remember mremember
 %type <ival>  startsub startanonsub startformsub
 /* FIXME for MAD - are these two ival? */
-%type <ival> mydefsv mintro
+%type <ival> mintro
 
 %type <opval> stmtseq fullstmt labfullstmt barestmt block mblock else
 %type <opval> expr term subscripted scalar ary hsh arylen star amper sideff
 %type <opval> listexpr nexpr texpr iexpr mexpr mnexpr miexpr
 %type <opval> optlistexpr optexpr indirob listop method
-%type <opval> formname subname proto subbody cont my_scalar
+%type <opval> formname subname proto subbody cont my_scalar formblock
 %type <opval> subattrlist myattrlist myattrterm myterm
 %type <opval> termbinop termunop anonymous termdo
+%type <opval> formstmtseq formline formarg
 
 %nonassoc <i_tkval> PREC_LOW
 %nonassoc LOOPEX
@@ -211,12 +212,18 @@ block	:	'{' remember stmtseq '}'
 			}
 	;
 
-remember:	/* NULL */	/* start a full lexical scope */
-			{ $$ = block_start(TRUE); }
+/* format body */
+formblock:	'=' remember ';' FORMRBRACK formstmtseq ';' '.'
+			{ if (PL_parser->copline > (line_t)IVAL($1))
+			      PL_parser->copline = (line_t)IVAL($1);
+			  $$ = block_end($2, $5);
+			  TOKEN_GETMAD($1,$$,'{');
+			  TOKEN_GETMAD($7,$$,'}');
+			}
 	;
 
-mydefsv:	/* NULL */	/* lexicalize $_ */
-			{ $$ = (I32) Perl_allocmy(aTHX_ STR_WITH_LEN("$_"), 0); }
+remember:	/* NULL */	/* start a full lexical scope */
+			{ $$ = block_start(TRUE); }
 	;
 
 mblock	:	'{' mremember stmtseq '}'
@@ -236,6 +243,17 @@ mremember:	/* NULL */	/* start a partial lexical scope */
 stmtseq	:	/* NULL */
 			{ $$ = (OP*)NULL; }
 	|	stmtseq fullstmt
+			{   $$ = op_append_list(OP_LINESEQ, $1, $2);
+			    PL_pad_reset_pending = TRUE;
+			    if ($1 && $2)
+				PL_hints |= HINT_BLOCK_SCOPE;
+			}
+	;
+
+/* A sequence of format lines */
+formstmtseq:	/* NULL */
+			{ $$ = (OP*)NULL; }
+	|	formstmtseq formline
 			{   $$ = op_append_list(OP_LINESEQ, $1, $2);
 			    PL_pad_reset_pending = TRUE;
 			    if ($1 && $2)
@@ -279,10 +297,9 @@ barestmt:	PLUGSTMT
 			  $$ = newOP(OP_NULL,0);
 			  TOKEN_GETMAD($1,$$,'p');
 			}
-	|	FORMAT startformsub formname block
+	|	FORMAT startformsub formname formblock
 			{
 			  CV *fmtcv = PL_compcv;
-			  SvREFCNT_inc_simple_void(PL_compcv);
 #ifdef MAD
 			  $$ = newFORM($2, $3, $4);
 			  prepend_madprops($1->tk_mad, $$, 'F');
@@ -380,10 +397,15 @@ barestmt:	PLUGSTMT
 			  TOKEN_GETMAD($5,$$,')');
 			  PL_parser->copline = (line_t)IVAL($1);
 			}
-	|	GIVEN '(' remember mydefsv mexpr ')' mblock
+	|	GIVEN '(' remember mexpr ')' mblock
 			{
+			  const PADOFFSET offset = pad_findmy_pvs("$_", 0);
 			  $$ = block_end($3,
-				  newGIVENOP($5, op_scope($7), (PADOFFSET)$4));
+				  newGIVENOP($4, op_scope($6),
+				    offset == NOT_IN_PAD
+				    || PAD_COMPNAME_FLAGS_isOUR(offset)
+				      ? 0
+				      : offset));
 			  PL_parser->copline = (line_t)IVAL($1);
 			}
 	|	WHEN '(' remember mexpr ')' mblock
@@ -466,15 +488,9 @@ barestmt:	PLUGSTMT
 			}
 	|	PACKAGE WORD WORD '{' remember
 			{
-			  int save_3_latefree = $3->op_latefree;
-			  $3->op_latefree = 1;
 			  package($3);
-			  $3->op_latefree = save_3_latefree;
 			  if ($2) {
-			      int save_2_latefree = $2->op_latefree;
-			      $2->op_latefree = 1;
 			      package_version($2);
-			      $2->op_latefree = save_2_latefree;
 			  }
 			}
 		stmtseq '}'
@@ -482,9 +498,6 @@ barestmt:	PLUGSTMT
 			  /* a block is a loop that happens once */
 			  $$ = newWHILEOP(0, 1, (LOOP*)(OP*)NULL,
 				  (OP*)NULL, block_end($5, $7), (OP*)NULL, 0);
-			  op_free($3);
-			  if ($2)
-			      op_free($2);
 			  TOKEN_GETMAD($4,$$,'{');
 			  TOKEN_GETMAD($8,$$,'}');
 			  if (PL_parser->copline > (line_t)IVAL($4))
@@ -503,6 +516,36 @@ barestmt:	PLUGSTMT
 			  TOKEN_GETMAD($1,$$,';');
 			  PL_parser->copline = NOLINE;
 			}
+	;
+
+/* Format line */
+formline:	THING formarg
+			{ OP *list;
+			  if ($2) {
+			      OP *term = $2;
+			      DO_MAD(term = newUNOP(OP_NULL, 0, term));
+			      list = op_append_elem(OP_LIST, $1, term);
+			  }
+			  else {
+#ifdef MAD
+			      OP *op = newNULLLIST();
+			      list = op_append_elem(OP_LIST, $1, op);
+#else
+			      list = $1;
+#endif
+			  }
+			  if (PL_parser->copline == NOLINE)
+			       PL_parser->copline = CopLINE(PL_curcop)-1;
+			  else PL_parser->copline--;
+			  $$ = newSTATEOP(0, NULL,
+					  convert(OP_FORMLINE, 0, list));
+			}
+	;
+
+formarg	:	/* NULL */
+			{ $$ = NULL; }
+	|	FORMLBRACK stmtseq FORMRBRACK
+			{ $$ = op_unscope($2); }
 	;
 
 /* An expression which may have a side-effect */

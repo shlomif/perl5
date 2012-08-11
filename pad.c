@@ -375,6 +375,7 @@ Perl_cv_undef(pTHX_ CV *cv)
     else if (slabbed) Perl_warn(aTHX_ "Slab leaked from cv %p", cv);
 #endif
     SvPOK_off(MUTABLE_SV(cv));		/* forget prototype */
+    sv_unmagic((SV *)cv, PERL_MAGIC_checkcall);
     CvGV_set(cv, NULL);
 
     /* This statement and the subsequence if block was pad_undef().  */
@@ -486,6 +487,21 @@ Perl_cv_undef(pTHX_ CV *cv)
     CvFLAGS(cv) &= (CVf_WEAKOUTSIDE|CVf_CVGV_RC|CVf_ANON);
 }
 
+<<<<<<< HEAD
+=======
+/*
+=for apidoc cv_forget_slab
+
+When a CV has a reference count on its slab (CvSLABBED), it is responsible
+for making sure it is freed.  (Hence, no two CVs should ever have a
+reference count on the same slab.)  The CV only needs to reference the slab
+during compilation.  Once it is compiled and CvROOT attached, it has
+finished its job, so it can forget the slab.
+
+=cut
+*/
+
+>>>>>>> blead
 void
 Perl_cv_forget_slab(pTHX_ CV *cv)
 {
@@ -1110,12 +1126,14 @@ S_pad_findlex(pTHX_ const char *namepv, STRLEN namelen, U32 flags, const CV* cv,
     SV *new_capture;
     SV **new_capturep;
     const AV * const padlist = CvPADLIST(cv);
+    const bool staleok = !!(flags & padadd_STALEOK);
 
     PERL_ARGS_ASSERT_PAD_FINDLEX;
 
-    if (flags & ~padadd_UTF8_NAME)
+    if (flags & ~(padadd_UTF8_NAME|padadd_STALEOK))
 	Perl_croak(aTHX_ "panic: pad_findlex illegal flag bits 0x%" UVxf,
 		   (UV)flags);
+    flags &= ~ padadd_STALEOK; /* one-shot flag */
 
     *out_flags = 0;
 
@@ -1266,6 +1284,7 @@ S_pad_findlex(pTHX_ const char *namepv, STRLEN namelen, U32 flags, const CV* cv,
 			PTR2UV(cv), PTR2UV(*out_capture)));
 
 		    if (SvPADSTALE(*out_capture)
+			&& (!CvDEPTH(cv) || !staleok)
 			&& !SvPAD_STATE(name_svp[offset]))
 		    {
 			Perl_ck_warner(aTHX_ packWARN(WARN_CLOSURE),
@@ -1300,7 +1319,9 @@ S_pad_findlex(pTHX_ const char *namepv, STRLEN namelen, U32 flags, const CV* cv,
     new_capturep = out_capture ? out_capture :
 		CvLATE(cv) ? NULL : &new_capture;
 
-    offset = pad_findlex(namepv, namelen, flags, CvOUTSIDE(cv), CvOUTSIDE_SEQ(cv), 1,
+    offset = pad_findlex(namepv, namelen,
+		flags | padadd_STALEOK*(new_capturep == &new_capture),
+		CvOUTSIDE(cv), CvOUTSIDE_SEQ(cv), 1,
 		new_capturep, out_name_sv, out_flags);
     if ((PADOFFSET)offset == NOT_IN_PAD)
 	return NOT_IN_PAD;
@@ -1997,17 +2018,30 @@ Perl_cv_clone(pTHX_ CV *proto)
     outpad = CvPADLIST(outside)
 	? AvARRAY(AvARRAY(CvPADLIST(outside))[depth])
 	: NULL;
+<<<<<<< HEAD
+=======
+    assert(outpad || SvTYPE(cv) == SVt_PVFM);
+>>>>>>> blead
 
     for (ix = fpad; ix > 0; ix--) {
 	SV* const namesv = (ix <= fname) ? pname[ix] : NULL;
 	SV *sv = NULL;
 	if (namesv && namesv != &PL_sv_undef) { /* lexical */
 	    if (SvFAKE(namesv)) {   /* lexical from outside? */
+<<<<<<< HEAD
 		/* formats may have an inactive, or even undefined, parent,
 		   while my $x if $false can leave an active var marked as
 		   stale. And state vars are always available */
 		if (!outpad || !(sv = outpad[PARENT_PAD_INDEX(namesv)])
 		 || (SvPADSTALE(sv) && !SvPAD_STATE(namesv))) {
+=======
+		/* formats may have an inactive, or even undefined, parent;
+		   but state vars are always available. */
+		if (!outpad || !(sv = outpad[PARENT_PAD_INDEX(namesv)])
+		 || (  SvPADSTALE(sv) && !SvPAD_STATE(namesv)
+		    && !CvDEPTH(outside))  ) {
+		    assert(SvTYPE(cv) == SVt_PVFM);
+>>>>>>> blead
 		    Perl_ck_warner(aTHX_ packWARN(WARN_CLOSURE),
 				   "Variable \"%"SVf"\" is not available", namesv);
 		    sv = NULL;

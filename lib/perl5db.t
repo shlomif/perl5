@@ -28,7 +28,11 @@ BEGIN {
     }
 }
 
+<<<<<<< HEAD
 plan(35);
+=======
+plan(34);
+>>>>>>> blead
 
 my $rc_filename = '.perldb';
 
@@ -902,6 +906,7 @@ package main;
     );
 }
 
+<<<<<<< HEAD
 {
     my $wrapper = DebugWrap->new(
         {
@@ -960,6 +965,8 @@ package main;
         'l followed by l and then followed by -',
     );
 }
+=======
+>>>>>>> blead
 END {
     1 while unlink ($rc_filename, $out_fn);
 }

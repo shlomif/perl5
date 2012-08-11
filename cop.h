@@ -420,12 +420,8 @@ struct cop {
 				 ? GvSV(gv_fetchfile(CopFILE(c))) : NULL)
 #  define CopFILEAV(c)		(CopFILE(c) \
 				 ? GvAV(gv_fetchfile(CopFILE(c))) : NULL)
-#  ifdef DEBUGGING
-#    define CopFILEAVx(c)	(assert(CopFILE(c)), \
+#  define CopFILEAVx(c)		(assert_(CopFILE(c)) \
 				   GvAV(gv_fetchfile(CopFILE(c))))
-#  else
-#    define CopFILEAVx(c)	(GvAV(gv_fetchfile(CopFILE(c))))
-#  endif
 
 #  define CopSTASH(c)           PL_stashpad[(c)->cop_stashoff]
 #  define CopSTASH_set(c,hv)	((c)->cop_stashoff = (hv)		\
@@ -627,6 +623,8 @@ struct block_format {
 	cx->blk_format.gv = gv;						\
 	cx->blk_format.retop = (retop);					\
 	cx->blk_format.dfoutgv = PL_defoutgv;				\
+	if (!CvDEPTH(cv)) SvREFCNT_inc_simple_void_NN(cv);		\
+	CvDEPTH(cv)++;							\
 	SvREFCNT_inc_void(cx->blk_format.dfoutgv)
 
 #define POP_SAVEARRAY()						\
@@ -679,6 +677,8 @@ struct block_format {
 
 #define POPFORMAT(cx)							\
 	setdefout(cx->blk_format.dfoutgv);				\
+	CvDEPTH(cx->blk_format.cv)--;					\
+	if (!CvDEPTH(cx->blk_format.cv)) SvREFCNT_dec(cx->blk_format.cv); \
 	SvREFCNT_dec(cx->blk_format.dfoutgv);
 
 /* eval context */

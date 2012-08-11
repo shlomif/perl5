@@ -36,7 +36,11 @@ BEGIN {
 }
 
 require "test.pl";
+<<<<<<< HEAD
 plan( tests => 61 );
+=======
+plan( tests => 64 );
+>>>>>>> blead
 
 my $ok;
 
@@ -1067,3 +1071,43 @@ cmp_ok($ok,'==',1,'dynamically scoped');
        "constant optimization doesn't change return value");
     }
 }
+<<<<<<< HEAD
+=======
+
+# [perl #113684]
+last_113684:
+{
+    label1:
+    {
+        my $label = "label1";
+        eval { last $label };
+        fail("last with non-constant label");
+        last last_113684;
+    }
+    pass("last with non-constant label");
+}
+next_113684:
+{
+    label2:
+    {
+        my $label = "label2";
+        eval { next $label };
+        fail("next with non-constant label");
+        next next_113684;
+    }
+    pass("next with non-constant label");
+}
+redo_113684:
+{
+    my $count;
+    label3:
+    {
+        if ($count++) {
+            pass("redo with non-constant label"); last redo_113684
+        }
+        my $label = "label3";
+        eval { redo $label };
+        fail("redo with non-constant label");
+    }
+}
+>>>>>>> blead

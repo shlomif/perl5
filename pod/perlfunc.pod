@@ -1597,6 +1597,8 @@ file.  Manual error checking can be done this way:
 =item dump LABEL
 X<dump> X<core> X<undump>
 
+=item dump EXPR
+
 =item dump
 
 =for Pod::Functions create an immediate core dump
@@ -1609,7 +1611,9 @@ having initialized all your variables at the beginning of the
 program.  When the new binary is executed it will begin by executing
 a C<goto LABEL> (with all the restrictions that C<goto> suffers).
 Think of it as a goto with an intervening core dump and reincarnation.
-If C<LABEL> is omitted, restarts the program from the top.
+If C<LABEL> is omitted, restarts the program from the top.  The
+C<dump EXPR> form, available starting in Perl 5.18.0, allows a name to be
+computed at run time, being otherwise identical to C<dump LABEL>.
 
 B<WARNING>: Any files opened at the time of the dump will I<not>
 be open any more when the program is reincarnated, with possible
@@ -1619,6 +1623,11 @@ This function is now largely obsolete, mostly because it's very hard to
 convert a core file into an executable.  That's why you should now invoke
 it as C<CORE::dump()>, if you don't want to be warned against a possible
 typo.
+
+Unlike most named operators, this has the same precedence as assignment.
+It is also exempt from the looks-like-a-function rule, so
+C<dump ("foo")."bar"> will cause "bar" to be part of the argument to
+C<dump>.
 
 Portability issues: L<perlport/dump>.
 
@@ -1677,6 +1686,13 @@ The exact behaviour may change in a future version of Perl.
 
     while (($key,$value) = each $hashref) { ... }
 
+As of Perl 5.18 you can use a bare C<each> in a C<while> loop,
+which will set C<$_> on every iteration.
+
+    while(each %ENV) {
+	print "$_=$ENV{$_}\n";
+    }
+
 To avoid confusing would-be users of your code who are running earlier
 versions of Perl with mysterious syntax errors, put this sort of thing at
 the top of your file to signal that your code will work I<only> on Perls of
@@ -1684,6 +1700,7 @@ a recent vintage:
 
     use 5.012;	# so keys/values/each work on arrays
     use 5.014;	# so keys/values/each work on scalars (experimental)
+    use 5.018;	# so each assigns to $_ in a lone while test
 
 See also C<keys>, C<values>, and C<sort>.
 
@@ -2894,6 +2911,8 @@ necessarily recommended if you're optimizing for maintainability:
 As shown in this example, C<goto-EXPR> is exempt from the "looks like a
 function" rule.  A pair of parentheses following it does not (necessarily)
 delimit its argument.  C<goto("NE")."XT"> is equivalent to C<goto NEXT>.
+Also, unlike most named operators, this has the same precedence as
+assignment.
 
 Use of C<goto-LABEL> or C<goto-EXPR> to jump into a construct is
 deprecated and will issue a warning.  Even then, it may not be used to
@@ -3212,13 +3231,18 @@ Portability issues: L<perlport/kill>.
 =item last LABEL
 X<last> X<break>
 
+=item last EXPR
+
 =item last
 
 =for Pod::Functions exit a block prematurely
 
 The C<last> command is like the C<break> statement in C (as used in
 loops); it immediately exits the loop in question.  If the LABEL is
-omitted, the command refers to the innermost enclosing loop.  The
+omitted, the command refers to the innermost enclosing
+loop.  The C<last EXPR> form, available starting in Perl
+5.18.0, allows a label name to be computed at run time,
+and is otherwise identical to C<last LABEL>.  The
 C<continue> block, if any, is not executed:
 
     LINE: while (<STDIN>) {
@@ -3236,6 +3260,11 @@ exit out of such a block.
 
 See also L</continue> for an illustration of how C<last>, C<next>, and
 C<redo> work.
+
+Unlike most named operators, this has the same precedence as assignment.
+It is also exempt from the looks-like-a-function rule, so
+C<last ("foo")."bar"> will cause "bar" to be part of the argument to
+C<last>.
 
 =item lc EXPR
 X<lc> X<lowercase>
@@ -3728,6 +3757,8 @@ L<attributes>, and L<Attribute::Handlers>.
 =item next LABEL
 X<next> X<continue>
 
+=item next EXPR
+
 =item next
 
 =for Pod::Functions iterate a block prematurely
@@ -3742,7 +3773,9 @@ the next iteration of the loop:
 
 Note that if there were a C<continue> block on the above, it would get
 executed even on discarded lines.  If LABEL is omitted, the command
-refers to the innermost enclosing loop.
+refers to the innermost enclosing loop.  The C<next EXPR> form, available
+as of Perl 5.18.0, allows a label name to be computed at run time, being
+otherwise identical to C<next LABEL>.
 
 C<next> cannot be used to exit a block which returns a value such as
 C<eval {}>, C<sub {}>, or C<do {}>, and should not be used to exit
@@ -3753,6 +3786,11 @@ that executes once.  Thus C<next> will exit such a block early.
 
 See also L</continue> for an illustration of how C<last>, C<next>, and
 C<redo> work.
+
+Unlike most named operators, this has the same precedence as assignment.
+It is also exempt from the looks-like-a-function rule, so
+C<next ("foo")."bar"> will cause "bar" to be part of the argument to
+C<next>.
 
 =item no MODULE VERSION LIST
 X<no declarations>
@@ -5140,16 +5178,23 @@ X<printf>
 =for Pod::Functions output a formatted list to a filehandle
 
 Equivalent to C<print FILEHANDLE sprintf(FORMAT, LIST)>, except that C<$\>
-(the output record separator) is not appended.  The first argument of the
-list will be interpreted as the C<printf> format.  See
+(the output record separator) is not appended.  The FORMAT and the
+LIST are actually parsed as a single list.  The first argument
+of the list will be interpreted as the C<printf> format.  This
+means that C<printf(@_)> will use C<$_[0]> as the format.  See
 L<sprintf|/sprintf FORMAT, LIST> for an
-explanation of the format argument.  If you omit the LIST, C<$_> is used;
-to use FILEHANDLE without a LIST, you must use a real filehandle like
-C<FH>, not an indirect one like C<$fh>.  If C<use locale> (including
+explanation of the format argument.  If C<use locale> (including
 C<use locale ':not_characters'>) is in effect and
 POSIX::setlocale() has been called, the character used for the decimal
 separator in formatted floating-point numbers is affected by the LC_NUMERIC
 locale setting.  See L<perllocale> and L<POSIX>.
+
+For historical reasons, if you omit the list, C<$_> is used as the format;
+to use FILEHANDLE without a list, you must use a real filehandle like
+C<FH>, not an indirect one like C<$fh>.  However, this will rarely do what
+you want; if $_ contains formatting codes, they will be replaced with the
+empty string and a warning will be emitted if warnings are enabled.  Just
+use C<print> if you want to print the contents of $_.
 
 Don't fall into the trap of using a C<printf> when a simple
 C<print> would do.  The C<print> is more efficient and less
@@ -5530,6 +5575,8 @@ case pretty much any characters can be read.
 =item redo LABEL
 X<redo>
 
+=item redo EXPR
+
 =item redo
 
 =for Pod::Functions start this loop iteration over again
@@ -5537,7 +5584,9 @@ X<redo>
 The C<redo> command restarts the loop block without evaluating the
 conditional again.  The C<continue> block, if any, is not executed.  If
 the LABEL is omitted, the command refers to the innermost enclosing
-loop.  Programs that want to lie to themselves about what was just input 
+loop.  The C<redo EXPR> form, available starting in Perl 5.18.0, allows a
+label name to be computed at run time, and is otherwise identical to C<redo
+LABEL>.  Programs that want to lie to themselves about what was just input 
 normally use this command:
 
     # a simpleminded Pascal comment stripper
@@ -5567,6 +5616,11 @@ turn it into a looping construct.
 
 See also L</continue> for an illustration of how C<last>, C<next>, and
 C<redo> work.
+
+Unlike most named operators, this has the same precedence as assignment.
+It is also exempt from the looks-like-a-function rule, so
+C<redo ("foo")."bar"> will cause "bar" to be part of the argument to
+C<redo>.
 
 =item ref EXPR
 X<ref> X<reference>
@@ -5864,6 +5918,10 @@ scalar context, and (of course) nothing at all in void context.
 or do FILE automatically returns the value of the last expression
 evaluated.)
 
+Unlike most named operators, this is also exempt from the
+looks-like-a-function rule, so C<return ("foo")."bar"> will
+cause "bar" to be part of the argument to C<return>.
+
 =item reverse LIST
 X<reverse> X<rev> X<invert>
 
@@ -5885,8 +5943,8 @@ Used without arguments in scalar context, reverse() reverses C<$_>.
     print scalar reverse;                  # Hello, world
 
 Note that reversing an array to itself (as in C<@a = reverse @a>) will
-preserve non-existent elements whenever possible, i.e., for non magical
-arrays or tied arrays with C<EXISTS> and C<DELETE> methods.
+preserve non-existent elements whenever possible; i.e., for non-magical
+arrays or for tied arrays with C<EXISTS> and C<DELETE> methods.
 
 This operator is also handy for inverting a hash, although there are some
 caveats.  If a value is duplicated in the original hash, only one of those

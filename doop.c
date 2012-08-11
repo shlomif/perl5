@@ -632,16 +632,14 @@ Perl_do_trans(pTHX_ SV *sv)
     PERL_ARGS_ASSERT_DO_TRANS;
 
     if (SvREADONLY(sv) && !(PL_op->op_private & OPpTRANS_IDENTICAL)) {
-        if (SvIsCOW(sv))
-            sv_force_normal_flags(sv, 0);
-        if (SvREADONLY(sv))
+        if (!SvIsCOW(sv))
             Perl_croak_no_modify(aTHX);
     }
     (void)SvPV_const(sv, len);
     if (!len)
 	return 0;
     if (!(PL_op->op_private & OPpTRANS_IDENTICAL)) {
-	if (!SvPOKp(sv))
+	if (!SvPOKp(sv) || SvTHINKFIRST(sv))
 	    (void)SvPV_force_nomg(sv, len);
 	(void)SvPOK_only_UTF8(sv);
     }
@@ -1131,12 +1129,12 @@ Perl_do_vop(pTHX_ I32 optype, SV *sv, SV *left, SV *right)
 	    else if (lulen)
 		dcsave = savepvn(lc, lulen);
 	    if (sv == left || sv == right)
-		(void)sv_usepvn(sv, dcorig, needlen); /* Uses Renew(). */
+		(void)sv_usepvn(sv, dcorig, needlen); /* uses Renew(); defaults to nomg */
 	    SvCUR_set(sv, dc - dcorig);
 	    if (rulen)
-		sv_catpvn(sv, dcsave, rulen);
+		sv_catpvn_nomg(sv, dcsave, rulen);
 	    else if (lulen)
-		sv_catpvn(sv, dcsave, lulen);
+		sv_catpvn_nomg(sv, dcsave, lulen);
 	    else
 		*SvEND(sv) = '\0';
 	    Safefree(dcsave);
@@ -1214,9 +1212,9 @@ Perl_do_vop(pTHX_ I32 optype, SV *sv, SV *left, SV *right)
 	  mop_up:
 	    len = lensave;
 	    if (rightlen > len)
-		sv_catpvn(sv, rsave + len, rightlen - len);
+		sv_catpvn_nomg(sv, rsave + len, rightlen - len);
 	    else if (leftlen > (STRLEN)len)
-		sv_catpvn(sv, lsave + len, leftlen - len);
+		sv_catpvn_nomg(sv, lsave + len, leftlen - len);
 	    else
 		*SvEND(sv) = '\0';
 	    break;

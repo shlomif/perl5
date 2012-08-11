@@ -58,10 +58,10 @@ for my $tref ( @NumTests ){
 #---------------------------------------------------------
 
 # number of tests in section 1
-my $bas_tests = 20;
+my $bas_tests = 21;
 
 # number of tests in section 3
-my $bug_tests = 8 + 3 * 3 * 5 * 2 * 3 + 2 + 66 + 4 + 2 + 3 + 96;
+my $bug_tests = 8 + 3 * 3 * 5 * 2 * 3 + 2 + 66 + 4 + 2 + 3 + 96 + 10;
 
 # number of tests in section 4
 my $hmb_tests = 35;
@@ -277,6 +277,18 @@ open   OUT4, ">Op_write.tmp" or die "Can't create Op_write.tmp";
 write (OUT4);
 close  OUT4 or die "Could not close: $!";
 is cat('Op_write.tmp'), "1\n" and unlink_all "Op_write.tmp";
+
+# More LEX_INTERPNORMAL
+format OUT4a=
+@<<<<<<<<<<<<<<<
+"${; use
+     strict; \'Nasdaq dropping like flies'}"
+.
+open   OUT4a, ">Op_write.tmp" or die "Can't create Op_write.tmp";
+write (OUT4a);
+close  OUT4a or die "Could not close: $!";
+is cat('Op_write.tmp'), "Nasdaq dropping\n", 'skipspace inside "${...}"'
+    and unlink_all "Op_write.tmp";
 
 eval <<'EOFORMAT';
 format OUT10 =
@@ -983,6 +995,113 @@ return
 
     close RT73690_2 or die "Could not close: $!";
 })[0];
+
+open(UNDEF, '>Op_write.tmp') || die "Can't create Op_write.tmp";
+select +(select(UNDEF), $~ = "UNDEFFORMAT")[0];
+format UNDEFFORMAT =
+@
+undef *UNDEFFORMAT
+.
+write UNDEF;
+pass "active format cannot be freed";
+
+select +(select(UNDEF), $~ = "UNDEFFORMAT2")[0];
+format UNDEFFORMAT2 =
+@
+close UNDEF or die "Could not close: $!"; undef *UNDEF
+.
+write UNDEF;
+pass "freeing current handle in format";
+undef $^A;
+
+ok !eval q|
+format foo {
+@<<<
+$a
+}
+;1
+|, 'format foo { ... } is not allowed';
+
+ok !eval q|
+format =
+@<<<
+}
+;1
+|, 'format = ... } is not allowed';
+
+open(NEST, '>Op_write.tmp') || die "Can't create Op_write.tmp";
+format NEST =
+@<<<
+{
+    my $birds = "birds";
+    local *NEST = *BIRDS{FORMAT};
+    write NEST;
+    format BIRDS =
+@<<<<<
+$birds;
+.
+    "nest"
+}
+.
+write NEST;
+close NEST or die "Could not close: $!";
+is cat('Op_write.tmp'), "birds\nnest\n", 'nested formats';
+
+# A compilation error should not create a format
+eval q|
+format ERROR =
+@
+@_ =~ s///
+.
+|;
+eval { write ERROR };
+like $@, qr'Undefined format',
+    'formats with compilation errors are not created';
+
+# This syntax error used to cause a crash, double free, or a least
+# a bad read.
+# See the long-winded explanation at:
+#   https://rt.perl.org/rt3/Ticket/Display.html?id=43425#txn-1144500
+eval q|
+format =
+@
+use;format
+strict
+.
+|;
+pass('no crash with invalid use/format inside format');
+
+
+# Low-precedence operators on argument line
+format AND =
+@
+0 and die
+.
+$- = $=;
+ok eval { local $~ = "AND"; print "# "; write; 1 },
+    "low-prec ops on arg line" or diag $@;
+
+# Anonymous hashes
+open(HASH, '>Op_write.tmp') || die "Can't create Op_write.tmp";
+format HASH =
+@<<<
+${{qw[ Sun 0 Mon 1 Tue 2 Wed 3 Thu 4 Fri 5 Sat 6 ]}}{"Wed"}
+.
+write HASH;
+close HASH or die "Could not close: $!";
+is cat('Op_write.tmp'), "3\n", 'anonymous hashes';
+
+# pragmata inside argument line
+open(STRICT, '>Op_write.tmp') || die "Can't create Op_write.tmp";
+format STRICT =
+@<<<
+no strict; $foo
+.
+$::foo = 'oof::$';
+write STRICT;
+close STRICT or die "Could not close: $!";
+is cat('Op_write.tmp'), "oof:\n", 'pragmata on format line';
+
 
 #############################
 ## Section 4

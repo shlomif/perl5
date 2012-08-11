@@ -5,6 +5,11 @@ BEGIN {
     @INC = '../lib';
     require './test.pl';
 }
+<<<<<<< HEAD
+=======
+
+plan tests => 22;
+>>>>>>> blead
 
 @x = (1, 2, 3);
 is( join(':',@x), '1:2:3', 'join an array with character');
@@ -95,4 +100,7 @@ is( $f, 'baeak', 'join back to self, self is join character');
   is( $ju2, $u );
 }
 
+<<<<<<< HEAD
 done_testing;
+=======
+>>>>>>> blead

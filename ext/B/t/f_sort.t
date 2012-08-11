@@ -500,7 +500,7 @@ checkOptree(name   => q{Compound sort/map Expression },
 # 5  <0> pushmark s
 # 6  <#> gv[*old] s
 # 7  <1> rv2av[t19] lKM/1
-# 8  <@> mapstart lK*
+# 8  <@> mapstart lK
 # 9  <|> mapwhile(other->a)[t20] lK
 # a      <0> enter l
 # b      <;> nextstate(main 608 (eval 34):2) v:{
@@ -513,14 +513,13 @@ checkOptree(name   => q{Compound sort/map Expression },
 # i      <@> leave lKP
 #            goto 9
 # j  <@> sort lKMS*
-# k  <@> mapstart lK*
+# k  <@> mapstart lK
 # l  <|> mapwhile(other->m)[t26] lK
 # m      <#> gv[*_] s
 # n      <1> rv2sv sKM/DREFAV,1
 # o      <1> rv2av[t4] sKR/1
 # p      <$> const[IV 0] s
 # q      <2> aelem sK/2
-# -      <@> scope lK
 #            goto l
 # r  <0> pushmark s
 # s  <#> gv[*new] s
@@ -535,7 +534,7 @@ EOT_EOT
 # 5  <0> pushmark s
 # 6  <$> gv(*old) s
 # 7  <1> rv2av[t10] lKM/1
-# 8  <@> mapstart lK*
+# 8  <@> mapstart lK
 # 9  <|> mapwhile(other->a)[t11] lK
 # a      <0> enter l
 # b      <;> nextstate(main 608 (eval 34):2) v:{
@@ -548,14 +547,13 @@ EOT_EOT
 # i      <@> leave lKP
 #            goto 9
 # j  <@> sort lKMS*
-# k  <@> mapstart lK*
+# k  <@> mapstart lK
 # l  <|> mapwhile(other->m)[t12] lK
 # m      <$> gv(*_) s
 # n      <1> rv2sv sKM/DREFAV,1
 # o      <1> rv2av[t2] sKR/1
 # p      <$> const(IV 0) s
 # q      <2> aelem sK/2
-# -      <@> scope lK
 #            goto l
 # r  <0> pushmark s
 # s  <$> gv(*new) s
@@ -785,12 +783,11 @@ checkOptree(note   => q{},
 # 4  <0> pushmark s
 # 5  <#> gv[*input] s
 # 6  <1> rv2av[t9] lKM/1
-# 7  <@> grepstart lK*
+# 7  <@> grepstart lK
 # 8  <|> grepwhile(other->9)[t10] lK
 # 9      <#> gvsv[*_] s
 # a      <#> gvsv[*_] s
 # b      <2> eq sK/2
-# -      <@> scope sK
 #            goto 8
 # c  <@> sort lK/NUM
 # d  <0> pushmark s
@@ -805,12 +802,11 @@ EOT_EOT
 # 4  <0> pushmark s
 # 5  <$> gv(*input) s
 # 6  <1> rv2av[t3] lKM/1
-# 7  <@> grepstart lK*
+# 7  <@> grepstart lK
 # 8  <|> grepwhile(other->9)[t4] lK
 # 9      <$> gvsv(*_) s
 # a      <$> gvsv(*_) s
 # b      <2> eq sK/2
-# -      <@> scope sK
 #            goto 8
 # c  <@> sort lK/NUM
 # d  <0> pushmark s
@@ -864,12 +860,11 @@ checkOptree(note   => q{},
 # 3  <0> pushmark s
 # 4  <#> gv[*input] s
 # 5  <1> rv2av[t7] lKM/1
-# 6  <@> grepstart lK*
+# 6  <@> grepstart lK
 # 7  <|> grepwhile(other->8)[t8] lK
 # 8      <#> gvsv[*_] s
 # 9      <#> gvsv[*_] s
 # a      <2> eq sK/2
-# -      <@> scope sK
 #            goto 7
 # b  <@> sort K/NUM
 # c  <1> leavesub[1 ref] K/REFC,1
@@ -879,12 +874,11 @@ EOT_EOT
 # 3  <0> pushmark s
 # 4  <$> gv(*input) s
 # 5  <1> rv2av[t2] lKM/1
-# 6  <@> grepstart lK*
+# 6  <@> grepstart lK
 # 7  <|> grepwhile(other->8)[t3] lK
 # 8      <$> gvsv(*_) s
 # 9      <$> gvsv(*_) s
 # a      <2> eq sK/2
-# -      <@> scope sK
 #            goto 7
 # b  <@> sort K/NUM
 # c  <1> leavesub[1 ref] K/REFC,1
@@ -937,12 +931,11 @@ checkOptree(note   => q{},
 # 3  <0> pushmark s
 # 4  <#> gv[*input] s
 # 5  <1> rv2av[t8] lKM/1
-# 6  <@> grepstart lK*
+# 6  <@> grepstart lK
 # 7  <|> grepwhile(other->8)[t9] lK
 # 8      <#> gvsv[*_] s
 # 9      <#> gvsv[*_] s
 # a      <2> eq sK/2
-# -      <@> scope sK
 #            goto 7
 # b  <@> sort sK/NUM
 # c  <#> gvsv[*s] s
@@ -954,12 +947,11 @@ EOT_EOT
 # 3  <0> pushmark s
 # 4  <$> gv(*input) s
 # 5  <1> rv2av[t2] lKM/1
-# 6  <@> grepstart lK*
+# 6  <@> grepstart lK
 # 7  <|> grepwhile(other->8)[t3] lK
 # 8      <$> gvsv(*_) s
 # 9      <$> gvsv(*_) s
 # a      <2> eq sK/2
-# -      <@> scope sK
 #            goto 7
 # b  <@> sort sK/NUM
 # c  <$> gvsv(*s) s

@@ -225,9 +225,9 @@ PP(pp_substcont)
 	    assert(cx->sb_strend >= s);
 	    if(cx->sb_strend > s) {
 		 if (DO_UTF8(dstr) && !SvUTF8(targ))
-		      sv_catpvn_utf8_upgrade(dstr, s, cx->sb_strend - s, nsv);
+		      sv_catpvn_nomg_utf8_upgrade(dstr, s, cx->sb_strend - s, nsv);
 		 else
-		      sv_catpvn(dstr, s, cx->sb_strend - s);
+		      sv_catpvn_nomg(dstr, s, cx->sb_strend - s);
 	    }
 	    if (RX_MATCH_TAINTED(rx)) /* run time pattern taint, eg locale */
 		cx->sb_rxtainted |= SUBST_TAINT_PAT;
@@ -296,9 +296,9 @@ PP(pp_substcont)
     cx->sb_m = m = RX_OFFS(rx)[0].start + orig;
     if (m > s) {
 	if (DO_UTF8(dstr) && !SvUTF8(cx->sb_targ))
-	    sv_catpvn_utf8_upgrade(dstr, s, m - s, nsv);
+	    sv_catpvn_nomg_utf8_upgrade(dstr, s, m - s, nsv);
 	else
-	    sv_catpvn(dstr, s, m-s);
+	    sv_catpvn_nomg(dstr, s, m-s);
     }
     cx->sb_s = RX_OFFS(rx)[0].end + orig;
     { /* Update the pos() information. */
@@ -2519,10 +2519,49 @@ PP(pp_leavesublv)
     return cx->blk_sub.retop;
 }
 
+static I32
+S_unwind_loop(pTHX_ const char * const opname)
+{
+    dVAR;
+    I32 cxix;
+    if (PL_op->op_flags & OPf_SPECIAL) {
+	cxix = dopoptoloop(cxstack_ix);
+	if (cxix < 0)
+	    /* diag_listed_as: Can't "last" outside a loop block */
+	    Perl_croak(aTHX_ "Can't \"%s\" outside a loop block", opname);
+    }
+    else {
+	dSP;
+	STRLEN label_len;
+	const char * const label =
+	    PL_op->op_flags & OPf_STACKED
+		? SvPV(TOPs,label_len)
+		: (label_len = strlen(cPVOP->op_pv), cPVOP->op_pv);
+	const U32 label_flags =
+	    PL_op->op_flags & OPf_STACKED
+		? SvUTF8(POPs)
+		: (cPVOP->op_private & OPpPV_IS_UTF8) ? SVf_UTF8 : 0;
+	PUTBACK;
+        cxix = dopoptolabel(label, label_len, label_flags);
+	if (cxix < 0)
+	    /* diag_listed_as: Label not found for "last %s" */
+	    Perl_croak(aTHX_ "Label not found for \"%s %"SVf"\"",
+				       opname,
+                                       SVfARG(PL_op->op_flags & OPf_STACKED
+                                              && !SvGMAGICAL(TOPp1s)
+                                              ? TOPp1s
+                                              : newSVpvn_flags(label,
+                                                    label_len,
+                                                    label_flags | SVs_TEMP)));
+    }
+    if (cxix < cxstack_ix)
+	dounwind(cxix);
+    return cxix;
+}
+
 PP(pp_last)
 {
-    dVAR; dSP;
-    I32 cxix;
+    dVAR;
     register PERL_CONTEXT *cx;
     I32 pop2 = 0;
     I32 gimme;
@@ -2533,24 +2572,7 @@ PP(pp_last)
     SV **mark;
     SV *sv = NULL;
 
-
-    if (PL_op->op_flags & OPf_SPECIAL) {
-	cxix = dopoptoloop(cxstack_ix);
-	if (cxix < 0)
-	    DIE(aTHX_ "Can't \"last\" outside a loop block");
-    }
-    else {
-        cxix = dopoptolabel(cPVOP->op_pv, strlen(cPVOP->op_pv),
-                           (cPVOP->op_private & OPpPV_IS_UTF8) ? SVf_UTF8 : 0);
-	if (cxix < 0)
-	    DIE(aTHX_ "Label not found for \"last %"SVf"\"",
-                                        SVfARG(newSVpvn_flags(cPVOP->op_pv,
-                                                    strlen(cPVOP->op_pv),
-                                                    ((cPVOP->op_private & OPpPV_IS_UTF8)
-                                                    ? SVf_UTF8 : 0) | SVs_TEMP)));
-    }
-    if (cxix < cxstack_ix)
-	dounwind(cxix);
+    S_unwind_loop(aTHX_ "last");
 
     POPBLOCK(cx,newpm);
     cxstack_ix++; /* temporarily protect top context */
@@ -2581,9 +2603,8 @@ PP(pp_last)
     }
 
     TAINT_NOT;
-    SP = adjust_stack_on_leave(newsp, SP, MARK, gimme,
+    PL_stack_sp = adjust_stack_on_leave(newsp, PL_stack_sp, MARK, gimme,
 				pop2 == CXt_SUB ? SVs_TEMP : 0);
-    PUTBACK;
 
     LEAVE;
     cxstack_ix--;
@@ -2611,31 +2632,13 @@ PP(pp_last)
 PP(pp_next)
 {
     dVAR;
-    I32 cxix;
     register PERL_CONTEXT *cx;
-    I32 inner;
+    const I32 inner = PL_scopestack_ix;
 
-    if (PL_op->op_flags & OPf_SPECIAL) {
-	cxix = dopoptoloop(cxstack_ix);
-	if (cxix < 0)
-	    DIE(aTHX_ "Can't \"next\" outside a loop block");
-    }
-    else {
-	cxix = dopoptolabel(cPVOP->op_pv, strlen(cPVOP->op_pv),
-                           (cPVOP->op_private & OPpPV_IS_UTF8) ? SVf_UTF8 : 0);
- 	if (cxix < 0)
-	    DIE(aTHX_ "Label not found for \"next %"SVf"\"",
-                                        SVfARG(newSVpvn_flags(cPVOP->op_pv, 
-                                                    strlen(cPVOP->op_pv),
-                                                    ((cPVOP->op_private & OPpPV_IS_UTF8)
-                                                    ? SVf_UTF8 : 0) | SVs_TEMP)));
-    }
-    if (cxix < cxstack_ix)
-	dounwind(cxix);
+    S_unwind_loop(aTHX_ "next");
 
     /* clear off anything above the scope we're re-entering, but
      * save the rest until after a possible continue block */
-    inner = PL_scopestack_ix;
     TOPBLOCK(cx);
     if (PL_scopestack_ix < inner)
 	leave_scope(PL_scopestack[PL_scopestack_ix]);
@@ -2646,30 +2649,11 @@ PP(pp_next)
 PP(pp_redo)
 {
     dVAR;
-    I32 cxix;
+    const I32 cxix = S_unwind_loop(aTHX_ "redo");
     register PERL_CONTEXT *cx;
     I32 oldsave;
-    OP* redo_op;
+    OP* redo_op = cxstack[cxix].blk_loop.my_op->op_redoop;
 
-    if (PL_op->op_flags & OPf_SPECIAL) {
-	cxix = dopoptoloop(cxstack_ix);
-	if (cxix < 0)
-	    DIE(aTHX_ "Can't \"redo\" outside a loop block");
-    }
-    else {
-	cxix = dopoptolabel(cPVOP->op_pv, strlen(cPVOP->op_pv),
-                           (cPVOP->op_private & OPpPV_IS_UTF8) ? SVf_UTF8 : 0);
- 	if (cxix < 0)
-	    DIE(aTHX_ "Label not found for \"redo %"SVf"\"",
-                                        SVfARG(newSVpvn_flags(cPVOP->op_pv,
-                                                    strlen(cPVOP->op_pv),
-                                                    ((cPVOP->op_private & OPpPV_IS_UTF8)
-                                                    ? SVf_UTF8 : 0) | SVs_TEMP)));
-    }
-    if (cxix < cxstack_ix)
-	dounwind(cxix);
-
-    redo_op = cxstack[cxix].blk_loop.my_op->op_redoop;
     if (redo_op->op_type == OP_ENTER) {
 	/* pop one less context to avoid $x being freed in while (my $x..) */
 	cxstack_ix++;
@@ -3279,7 +3263,11 @@ Perl_find_runcv_where(pTHX_ U8 cond, void *arg, U32 *db_seqp)
 		    if (CvROOT(cv) != (OP *)arg) continue;
 		    return cv;
 		case FIND_RUNCV_level_eq:
+<<<<<<< HEAD
 		    if (level++ != (IV)arg) continue;
+=======
+		    if (level++ != PTR2IV(arg)) continue;
+>>>>>>> blead
 		    /* GERONIMO! */
 		default:
 		    return cv;
@@ -3596,6 +3584,9 @@ PP(pp_require)
     STRLEN unixlen;
 #ifdef VMS
     int vms_unixname = 0;
+    char *unixnamebuf;
+    char *unixdir;
+    char *unixdirbuf;
 #endif
     const char *tryname = NULL;
     SV *namesv = NULL;
@@ -3681,7 +3672,9 @@ PP(pp_require)
      * To prevent this, the key must be stored in UNIX format if the VMS
      * name can be translated to UNIX.
      */
-    if ((unixname = tounixspec(name, NULL)) != NULL) {
+    
+    if ((unixnamebuf = SvPVX(sv_2mortal(newSVpv("", VMS_MAXRSS-1))))
+        && (unixname = tounixspec(name, unixnamebuf)) != NULL) {
 	unixlen = strlen(unixname);
 	vms_unixname = 1;
     }
@@ -3856,8 +3849,8 @@ PP(pp_require)
 		    }
 
 #ifdef VMS
-		    char *unixdir;
-		    if ((unixdir = tounixpath(dir, NULL)) == NULL)
+		    if (((unixdirbuf = SvPVX(sv_2mortal(newSVpv("", VMS_MAXRSS-1)))) == NULL)
+			|| ((unixdir = tounixpath(dir, unixdirbuf)) == NULL))
 			continue;
 		    sv_setpv(namesv, unixdir);
 		    sv_catpv(namesv, unixname);
@@ -3939,9 +3932,9 @@ PP(pp_require)
 		    DIE(aTHX_
 			"Can't locate %s in @INC%s%s (@INC contains:%" SVf ")",
 			name,
-			(memEQ(name + len - 2, ".h", 3)
+			(len >= 2 && memEQ(name + len - 2, ".h", 3)
 			 ? " (change .h to .ph maybe?) (did you run h2ph?)" : ""),
-			(memEQ(name + len - 3, ".ph", 4)
+			(len >= 3 && memEQ(name + len - 3, ".ph", 4)
 			 ? " (did you run h2ph?)" : ""),
 			inc
 			);
@@ -4289,8 +4282,15 @@ PP(pp_entergiven)
     ENTER_with_name("given");
     SAVETMPS;
 
-    SAVECLEARSV(PAD_SVl(PL_op->op_targ));
-    sv_setsv_mg(PAD_SV(PL_op->op_targ), POPs);
+    if (PL_op->op_targ) {
+	SAVEPADSVANDMORTALIZE(PL_op->op_targ);
+	SvREFCNT_dec(PAD_SVl(PL_op->op_targ));
+	PAD_SVl(PL_op->op_targ) = SvREFCNT_inc_NN(POPs);
+    }
+    else {
+	SAVE_DEFSV;
+	DEFSV_set(POPs);
+    }
 
     PUSHBLOCK(cx, CXt_GIVEN, SP);
     PUSHGIVEN(cx);

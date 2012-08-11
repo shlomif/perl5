@@ -348,7 +348,7 @@ perform the upgrade if necessary.  See C<svtype>.
 
 
 
-#define SVf_THINKFIRST	(SVf_READONLY|SVf_ROK|SVf_FAKE)
+#define SVf_THINKFIRST	(SVf_READONLY|SVf_ROK|SVf_FAKE|SVs_RMG)
 
 #define SVf_OK		(SVf_IOK|SVf_NOK|SVf_POK|SVf_ROK| \
 			 SVp_IOK|SVp_NOK|SVp_POK|SVpgv_GP)
@@ -415,8 +415,13 @@ perform the upgrade if necessary.  See C<svtype>.
 #define _XPV_HEAD							\
     HV*		xmg_stash;	/* class package */			\
     union _xmgu	xmg_u;							\
-    STRLEN	xpv_cur;	/* length of svu_pv as a C string */    \
+    union {								\
+	STRLEN	xpvcuru_cur;	/* length of svu_pv as a C string */    \
+	I32	xpvcuru_fmdepth;					\
+    }		xpv_cur_u;						\
     STRLEN	xpv_len 	/* allocated size */
+
+#define xpv_cur	xpv_cur_u.xpvcuru_cur
 
 union _xnvu {
     NV	    xnv_nv;		/* numeric value, if any */
@@ -520,7 +525,6 @@ typedef U16 cv_flags_t;
 struct xpvfm {
     _XPV_HEAD;
     _XPVCV_COMMON;
-    IV		xfm_lines;
 };
 
 
@@ -748,13 +752,8 @@ Set the actual length of the string which is in the SV.  See C<SvIV_set>.
 #define SvNIOK_off(sv)		(SvFLAGS(sv) &= ~(SVf_IOK|SVf_NOK| \
 						  SVp_IOK|SVp_NOK|SVf_IVisUV))
 
-#if defined(__GNUC__) && !defined(PERL_GCC_BRACE_GROUPS_FORBIDDEN)
-#define assert_not_ROK(sv)	({assert(!SvROK(sv) || !SvRV(sv));}),
-#define assert_not_glob(sv)	({assert(!isGV_with_GP(sv));}),
-#else
-#define assert_not_ROK(sv)	
-#define assert_not_glob(sv)	
-#endif
+#define assert_not_ROK(sv)	assert_(!SvROK(sv) || !SvRV(sv))
+#define assert_not_glob(sv)	assert_(!isGV_with_GP(sv))
 
 #define SvOK(sv)		((SvTYPE(sv) == SVt_BIND)		\
 				 ? (SvFLAGS(SvRV(sv)) & SVf_OK)		\
@@ -905,6 +904,32 @@ in gv.h: */
 #define HvAMAGIC_on(hv)		(SvFLAGS(hv) |= SVf_AMAGIC)
 #define HvAMAGIC_off(hv)	(SvFLAGS(hv) &=~ SVf_AMAGIC)
 
+
+#define SvPOK_nog(sv)		((SvFLAGS(sv) & (SVf_POK|SVs_GMG)) == SVf_POK)
+#define SvIOK_nog(sv)		((SvFLAGS(sv) & (SVf_IOK|SVs_GMG)) == SVf_IOK)
+#define SvUOK_nog(sv)		((SvFLAGS(sv) & (SVf_IOK|SVf_IVisUV|SVs_GMG)) == (SVf_IOK|SVf_IVisUV))
+#define SvNOK_nog(sv)		((SvFLAGS(sv) & (SVf_NOK|SVs_GMG)) == SVf_NOK)
+#define SvNIOK_nog(sv)		(SvNIOK(sv) && !(SvFLAGS(sv) & SVs_GMG))
+
+#define SvPOK_nogthink(sv)	((SvFLAGS(sv) & (SVf_POK|SVf_THINKFIRST|SVs_GMG)) == SVf_POK)
+#define SvIOK_nogthink(sv)	((SvFLAGS(sv) & (SVf_IOK|SVf_THINKFIRST|SVs_GMG)) == SVf_IOK)
+#define SvUOK_nogthink(sv)	((SvFLAGS(sv) & (SVf_IOK|SVf_IVisUV|SVf_THINKFIRST|SVs_GMG)) == (SVf_IOK|SVf_IVisUV))
+#define SvNOK_nogthink(sv)	((SvFLAGS(sv) & (SVf_NOK|SVf_THINKFIRST|SVs_GMG)) == SVf_NOK)
+#define SvNIOK_nogthink(sv)	(SvNIOK(sv) && !(SvFLAGS(sv) & (SVf_THINKFIRST|SVs_GMG)))
+
+#define SvPOK_utf8_nog(sv)	((SvFLAGS(sv) & (SVf_POK|SVf_UTF8|SVs_GMG)) == (SVf_POK|SVf_UTF8))
+#define SvPOK_utf8_nogthink(sv)	((SvFLAGS(sv) & (SVf_POK|SVf_UTF8|SVf_THINKFIRST|SVs_GMG)) == (SVf_POK|SVf_UTF8))
+
+#define SvPOK_byte_nog(sv)	((SvFLAGS(sv) & (SVf_POK|SVf_UTF8|SVs_GMG)) == SVf_POK)
+#define SvPOK_byte_nogthink(sv)	((SvFLAGS(sv) & (SVf_POK|SVf_UTF8|SVf_THINKFIRST|SVs_GMG)) == SVf_POK)
+
+#define SvPOK_pure_nogthink(sv) \
+    ((SvFLAGS(sv) & (SVf_POK|SVf_IOK|SVf_NOK|SVf_ROK|SVpgv_GP|SVf_THINKFIRST|SVs_GMG)) == SVf_POK)
+#define SvPOK_utf8_pure_nogthink(sv) \
+    ((SvFLAGS(sv) & (SVf_POK|SVf_UTF8|SVf_IOK|SVf_NOK|SVf_ROK|SVpgv_GP|SVf_THINKFIRST|SVs_GMG)) == (SVf_POK|SVf_UTF8))
+#define SvPOK_byte_pure_nogthink(sv) \
+    ((SvFLAGS(sv) & (SVf_POK|SVf_UTF8|SVf_IOK|SVf_NOK|SVf_ROK|SVpgv_GP|SVf_THINKFIRST|SVs_GMG)) == SVf_POK)
+
 /*
 =for apidoc Am|U32|SvGAMAGIC|SV* sv
 
@@ -935,6 +960,30 @@ the scalar's value cannot change unless written to.
 				 == (SVf_ROK|SVprv_PCS_IMPORTED))
 #define SvPCS_IMPORTED_on(sv)	(SvFLAGS(sv) |=  (SVf_ROK|SVprv_PCS_IMPORTED))
 #define SvPCS_IMPORTED_off(sv)	(SvFLAGS(sv) &= ~(SVf_ROK|SVprv_PCS_IMPORTED))
+
+/*
+=for apidoc m|U32|SvTHINKFIRST|SV *sv
+
+A quick flag check to see whether an sv should be passed to sv_force_normal
+to be "downgraded" before SvIVX or SvPVX can be modified directly.
+
+For example, if your scalar is a reference and you want to modify the SvIVX
+slot, you can't just do SvROK_off, as that will leak the referent.
+
+This is used internally by various sv-modifying functions, such as
+sv_setsv, sv_setiv and sv_pvn_force.
+
+One case that this does not handle is a gv without SvFAKE set.  After
+
+    if (SvTHINKFIRST(gv)) sv_force_normal(gv);
+
+it will still be a gv.
+
+SvTHINKFIRST sometimes produces false positives.  In those cases
+sv_force_normal does nothing.
+
+=cut
+*/
 
 #define SvTHINKFIRST(sv)	(SvFLAGS(sv) & SVf_THINKFIRST)
 
@@ -1085,7 +1134,7 @@ the scalar's value cannot change unless written to.
 #  define SvRV_const(sv) (0 + (sv)->sv_u.svu_rv)
 /* Don't test the core XS code yet.  */
 #  if defined (PERL_CORE) && PERL_DEBUG_COW > 1
-#    define SvPVX(sv) (0 + (assert(!SvREADONLY(sv)), (sv)->sv_u.svu_pv))
+#    define SvPVX(sv) (0 + (assert_(!SvREADONLY(sv)) (sv)->sv_u.svu_pv))
 #  else
 #  define SvPVX(sv) SvPVX_mutable(sv)
 #  endif
@@ -1093,13 +1142,8 @@ the scalar's value cannot change unless written to.
 #  define SvLEN(sv) (0 + ((XPV*) SvANY(sv))->xpv_len)
 #  define SvEND(sv) ((sv)->sv_u.svu_pv + ((XPV*)SvANY(sv))->xpv_cur)
 
-#  ifdef DEBUGGING
-#    define SvMAGIC(sv)	(0 + *(assert(SvTYPE(sv) >= SVt_PVMG), &((XPVMG*)  SvANY(sv))->xmg_u.xmg_magic))
-#    define SvSTASH(sv)	(0 + *(assert(SvTYPE(sv) >= SVt_PVMG), &((XPVMG*)  SvANY(sv))->xmg_stash))
-#  else
-#    define SvMAGIC(sv)	(0 + ((XPVMG*)  SvANY(sv))->xmg_u.xmg_magic)
-#    define SvSTASH(sv)	(0 + ((XPVMG*)  SvANY(sv))->xmg_stash)
-#  endif
+#  define SvMAGIC(sv)	(0 + *(assert_(SvTYPE(sv) >= SVt_PVMG) &((XPVMG*)  SvANY(sv))->xmg_u.xmg_magic))
+#  define SvSTASH(sv)	(0 + *(assert_(SvTYPE(sv) >= SVt_PVMG) &((XPVMG*)  SvANY(sv))->xmg_stash))
 #else
 #  define SvLEN(sv) ((XPV*) SvANY(sv))->xpv_len
 #  define SvEND(sv) ((sv)->sv_u.svu_pv + ((XPV*)SvANY(sv))->xpv_cur)
@@ -1210,12 +1254,7 @@ the scalar's value cannot change unless written to.
 #define SvIV_please_nomg(sv) \
 	(!SvIOKp(sv) && (SvNOK(sv) || SvPOK(sv)) \
 	    ? (SvIV_nomg(sv), SvIOK(sv))	  \
-	    : SvGMAGICAL(sv)			   \
-		? SvIOKp(sv) || (		    \
-		       (SvNOKp(sv) || SvPOKp(sv))    \
-		    && sv_gmagical_2iv_please(sv)     \
-		  )				       \
-		: SvIOK(sv))
+	    : SvIOK(sv))
 #define SvIV_set(sv, val) \
 	STMT_START { \
 		assert(PL_valid_types_IV_set[SvTYPE(sv) & SVt_MASK]);	\
@@ -1342,7 +1381,7 @@ the scalar's value cannot change unless written to.
 
 #endif
 
-#define FmLINES(sv)	((XPVFM*)  SvANY(sv))->xfm_lines
+#define FmLINES(sv)	((XPVIV*)  SvANY(sv))->xiv_iv
 
 #define LvTYPE(sv)	((XPVLV*)  SvANY(sv))->xlv_type
 #define LvTARG(sv)	((XPVLV*)  SvANY(sv))->xlv_targ
@@ -1421,14 +1460,14 @@ attention to precisely which outputs are influenced by which inputs.
 
 /*
 =for apidoc Am|char*|SvPV_force|SV* sv|STRLEN len
-Like C<SvPV> but will force the SV into containing just a string
-(C<SvPOK_only>).  You want force if you are going to update the C<SvPVX>
-directly.
+Like C<SvPV> but will force the SV into containing a string (C<SvPOK>), and
+only a (C<SvPOK_only>), by hook or by crook.  You want force if you are
+going to update the C<SvPVX> directly.  Processes get magic.
 
 =for apidoc Am|char*|SvPV_force_nomg|SV* sv|STRLEN len
-Like C<SvPV> but will force the SV into containing just a string
-(C<SvPOK_only>).  You want force if you are going to update the C<SvPVX>
-directly.  Doesn't process magic.
+Like C<SvPV> but will force the SV into containing a string (C<SvPOK>), and
+only a (C<SvPOK_only>), by hook or by crook.  You want force if you are
+going to update the C<SvPVX> directly.  Doesn't process get magic.
 
 =for apidoc Am|char*|SvPV|SV* sv|STRLEN len
 Returns a pointer to the string in the SV, or a stringified form of
@@ -1568,9 +1607,9 @@ Like sv_utf8_upgrade, but doesn't do magic on C<sv>.
 */
 
 /* Let us hope that bitmaps for UV and IV are the same */
-#define SvIV(sv) (SvIOK(sv) ? SvIVX(sv) : sv_2iv(sv))
-#define SvUV(sv) (SvIOK(sv) ? SvUVX(sv) : sv_2uv(sv))
-#define SvNV(sv) (SvNOK(sv) ? SvNVX(sv) : sv_2nv(sv))
+#define SvIV(sv) (SvIOK_nog(sv) ? SvIVX(sv) : sv_2iv(sv))
+#define SvUV(sv) (SvUOK_nog(sv) ? SvUVX(sv) : sv_2uv(sv))
+#define SvNV(sv) (SvNOK_nog(sv) ? SvNVX(sv) : sv_2nv(sv))
 
 #define SvIV_nomg(sv) (SvIOK(sv) ? SvIVX(sv) : sv_2iv_flags(sv, 0))
 #define SvUV_nomg(sv) (SvIOK(sv) ? SvUVX(sv) : sv_2uv_flags(sv, 0))
@@ -1578,23 +1617,23 @@ Like sv_utf8_upgrade, but doesn't do magic on C<sv>.
 
 /* ----*/
 
-#define SvPV(sv, lp) SvPV_flags(sv, lp, SV_GMAGIC)
-#define SvPV_const(sv, lp) SvPV_flags_const(sv, lp, SV_GMAGIC)
+#define SvPV(sv, lp)         SvPV_flags(sv, lp, SV_GMAGIC)
+#define SvPV_const(sv, lp)   SvPV_flags_const(sv, lp, SV_GMAGIC)
 #define SvPV_mutable(sv, lp) SvPV_flags_mutable(sv, lp, SV_GMAGIC)
 
 #define SvPV_flags(sv, lp, flags) \
-    ((SvFLAGS(sv) & (SVf_POK)) == SVf_POK \
+    (SvPOK_nog(sv) \
      ? ((lp = SvCUR(sv)), SvPVX(sv)) : sv_2pv_flags(sv, &lp, flags))
 #define SvPV_flags_const(sv, lp, flags) \
-    ((SvFLAGS(sv) & (SVf_POK)) == SVf_POK \
+    (SvPOK_nog(sv) \
      ? ((lp = SvCUR(sv)), SvPVX_const(sv)) : \
      (const char*) sv_2pv_flags(sv, &lp, flags|SV_CONST_RETURN))
 #define SvPV_flags_const_nolen(sv, flags) \
-    ((SvFLAGS(sv) & (SVf_POK)) == SVf_POK \
+    (SvPOK_nog(sv) \
      ? SvPVX_const(sv) : \
      (const char*) sv_2pv_flags(sv, 0, flags|SV_CONST_RETURN))
 #define SvPV_flags_mutable(sv, lp, flags) \
-    ((SvFLAGS(sv) & (SVf_POK)) == SVf_POK \
+    (SvPOK_nog(sv) \
      ? ((lp = SvCUR(sv)), SvPVX_mutable(sv)) : \
      sv_2pv_flags(sv, &lp, flags|SV_MUTABLE_RETURN))
 
@@ -1606,26 +1645,28 @@ Like sv_utf8_upgrade, but doesn't do magic on C<sv>.
 #define SvPV_force_nomg_nolen(sv) SvPV_force_flags_nolen(sv, 0)
 
 #define SvPV_force_flags(sv, lp, flags) \
-    ((SvFLAGS(sv) & (SVf_POK|SVf_THINKFIRST)) == SVf_POK \
-    ? ((lp = SvCUR(sv)), SvPVX(sv)) : sv_pvn_force_flags(sv, &lp, flags))
+    (SvPOK_pure_nogthink(sv) \
+     ? ((lp = SvCUR(sv)), SvPVX(sv)) : sv_pvn_force_flags(sv, &lp, flags))
+
 #define SvPV_force_flags_nolen(sv, flags) \
-    ((SvFLAGS(sv) & (SVf_POK|SVf_THINKFIRST)) == SVf_POK \
-    ? SvPVX(sv) : sv_pvn_force_flags(sv, 0, flags))
+    (SvPOK_pure_nogthink(sv) \
+     ? SvPVX(sv) : sv_pvn_force_flags(sv, 0, flags))
+
 #define SvPV_force_flags_mutable(sv, lp, flags) \
-    ((SvFLAGS(sv) & (SVf_POK|SVf_THINKFIRST)) == SVf_POK \
-    ? ((lp = SvCUR(sv)), SvPVX_mutable(sv)) \
+    (SvPOK_pure_nogthink(sv) \
+     ? ((lp = SvCUR(sv)), SvPVX_mutable(sv)) \
      : sv_pvn_force_flags(sv, &lp, flags|SV_MUTABLE_RETURN))
 
 #define SvPV_nolen(sv) \
-    ((SvFLAGS(sv) & (SVf_POK)) == SVf_POK \
+    (SvPOK_nog(sv) \
      ? SvPVX(sv) : sv_2pv_flags(sv, 0, SV_GMAGIC))
 
 #define SvPV_nomg_nolen(sv) \
-    ((SvFLAGS(sv) & (SVf_POK)) == SVf_POK \
+    (SvPOK_nog(sv) \
      ? SvPVX(sv) : sv_2pv_flags(sv, 0, 0))
 
 #define SvPV_nolen_const(sv) \
-    ((SvFLAGS(sv) & (SVf_POK)) == SVf_POK \
+    (SvPOK_nog(sv) \
      ? SvPVX_const(sv) : sv_2pv_flags(sv, 0, SV_GMAGIC|SV_CONST_RETURN))
 
 #define SvPV_nomg(sv, lp) SvPV_flags(sv, lp, 0)
@@ -1635,32 +1676,30 @@ Like sv_utf8_upgrade, but doesn't do magic on C<sv>.
 /* ----*/
 
 #define SvPVutf8(sv, lp) \
-    ((SvFLAGS(sv) & (SVf_POK|SVf_UTF8)) == (SVf_POK|SVf_UTF8) \
+    (SvPOK_utf8_nog(sv) \
      ? ((lp = SvCUR(sv)), SvPVX(sv)) : sv_2pvutf8(sv, &lp))
 
 #define SvPVutf8_force(sv, lp) \
-    ((SvFLAGS(sv) & (SVf_POK|SVf_UTF8|SVf_THINKFIRST)) == (SVf_POK|SVf_UTF8) \
+    (SvPOK_utf8_pure_nogthink(sv) \
      ? ((lp = SvCUR(sv)), SvPVX(sv)) : sv_pvutf8n_force(sv, &lp))
 
-
 #define SvPVutf8_nolen(sv) \
-    ((SvFLAGS(sv) & (SVf_POK|SVf_UTF8)) == (SVf_POK|SVf_UTF8)\
+    (SvPOK_utf8_nog(sv) \
      ? SvPVX(sv) : sv_2pvutf8(sv, 0))
 
 /* ----*/
 
 #define SvPVbyte(sv, lp) \
-    ((SvFLAGS(sv) & (SVf_POK|SVf_UTF8)) == (SVf_POK) \
+    (SvPOK_byte_nog(sv) \
      ? ((lp = SvCUR(sv)), SvPVX(sv)) : sv_2pvbyte(sv, &lp))
 
 #define SvPVbyte_force(sv, lp) \
-    ((SvFLAGS(sv) & (SVf_POK|SVf_UTF8|SVf_THINKFIRST)) == (SVf_POK) \
+    (SvPOK_byte_pure_nogthink(sv) \
      ? ((lp = SvCUR(sv)), SvPVX(sv)) : sv_pvbyten_force(sv, &lp))
 
 #define SvPVbyte_nolen(sv) \
-    ((SvFLAGS(sv) & (SVf_POK|SVf_UTF8)) == (SVf_POK)\
+    (SvPOK_byte_nog(sv) \
      ? SvPVX(sv) : sv_2pvbyte(sv, 0))
-
 
     
 /* define FOOx(): idempotent versions of FOO(). If possible, use a local
@@ -1671,6 +1710,17 @@ Like sv_utf8_upgrade, but doesn't do magic on C<sv>.
 #define SvPVx_force(sv, lp) sv_pvn_force(sv, &lp)
 #define SvPVutf8x_force(sv, lp) sv_pvutf8n_force(sv, &lp)
 #define SvPVbytex_force(sv, lp) sv_pvbyten_force(sv, &lp)
+
+#define SvTRUE(sv)        ((sv) && (SvGMAGICAL(sv) ? sv_2bool(sv) : SvTRUE_common(sv, sv_2bool_nomg(sv))))
+#define SvTRUE_nomg(sv)   ((sv) && (                                SvTRUE_common(sv, sv_2bool_nomg(sv))))
+#define SvTRUE_common(sv,fallback) (			\
+      !SvOK(sv)						\
+	? 0						\
+    : (SvFLAGS(sv) & (SVf_POK|SVf_IOK|SVf_NOK))		\
+	? (   (SvPOK(sv) && SvPVXtrue(sv))		\
+	   || (SvIOK(sv) && SvIVX(sv) != 0)		\
+	   || (SvNOK(sv) && SvNVX(sv) != 0.0))		\
+    : (fallback))
 
 #if defined(__GNUC__) && !defined(PERL_GCC_BRACE_GROUPS_FORBIDDEN)
 
@@ -1684,39 +1734,13 @@ Like sv_utf8_upgrade, but doesn't do magic on C<sv>.
 #  define SvPVutf8x(sv, lp) ({SV *_sv = (sv); SvPVutf8(_sv, lp); })
 #  define SvPVbytex(sv, lp) ({SV *_sv = (sv); SvPVbyte(_sv, lp); })
 #  define SvPVbytex_nolen(sv) ({SV *_sv = (sv); SvPVbyte_nolen(_sv); })
-#  define SvTRUE(sv) (						\
-    !sv								\
-    ? 0								\
-    :    SvPOK(sv)						\
-	?   (({XPV *nxpv = (XPV*)SvANY(sv);			\
-	     nxpv &&						\
-	     (nxpv->xpv_cur > 1 ||				\
-	      (nxpv->xpv_cur && *(sv)->sv_u.svu_pv != '0')); })	\
-	     ? 1						\
-	     : 0)						\
-	:							\
-	    SvIOK(sv)						\
-	    ? SvIVX(sv) != 0					\
-	    :   SvNOK(sv)					\
-		? SvNVX(sv) != 0.0				\
-		: sv_2bool(sv) )
-#  define SvTRUE_nomg(sv) (					\
-    !sv								\
-    ? 0								\
-    :    SvPOK(sv)						\
-	?   (({XPV *nxpv = (XPV*)SvANY(sv);			\
-	     nxpv &&						\
-	     (nxpv->xpv_cur > 1 ||				\
-	      (nxpv->xpv_cur && *(sv)->sv_u.svu_pv != '0')); })	\
-	     ? 1						\
-	     : 0)						\
-	:							\
-	    SvIOK(sv)						\
-	    ? SvIVX(sv) != 0					\
-	    :   SvNOK(sv)					\
-		? SvNVX(sv) != 0.0				\
-		: sv_2bool_flags(sv,0) )
-#  define SvTRUEx(sv) ({SV *_sv = (sv); SvTRUE(_sv); })
+#  define SvTRUEx(sv)      ({SV *_sv = (sv); SvTRUE(_sv); })
+#  define SvTRUEx_nomg(sv) ({SV *_sv = (sv); SvTRUE_nomg(_sv); })
+#  define SvPVXtrue(sv)						\
+    ({XPV *nxpv;						\
+     (nxpv = (XPV*)SvANY(sv))					\
+      && (nxpv->xpv_cur > 1					\
+	  || (nxpv->xpv_cur && *(sv)->sv_u.svu_pv != '0'));})
 
 #else /* __GNUC__ */
 
@@ -1733,37 +1757,12 @@ Like sv_utf8_upgrade, but doesn't do magic on C<sv>.
 #  define SvPVutf8x(sv, lp) ((PL_Sv = (sv)), SvPVutf8(PL_Sv, lp))
 #  define SvPVbytex(sv, lp) ((PL_Sv = (sv)), SvPVbyte(PL_Sv, lp))
 #  define SvPVbytex_nolen(sv) ((PL_Sv = (sv)), SvPVbyte_nolen(PL_Sv))
-#  define SvTRUE(sv) (						\
-    !sv								\
-    ? 0								\
-    :    SvPOK(sv)						\
-	?   ((PL_Xpv = (XPV*)SvANY(PL_Sv = (sv))) &&		\
-	     (PL_Xpv->xpv_cur > 1 ||				\
-	      (PL_Xpv->xpv_cur && *PL_Sv->sv_u.svu_pv != '0'))	\
-	     ? 1						\
-	     : 0)						\
-	:							\
-	    SvIOK(sv)						\
-	    ? SvIVX(sv) != 0					\
-	    :   SvNOK(sv)					\
-		? SvNVX(sv) != 0.0				\
-		: sv_2bool(sv) )
-#  define SvTRUE_nomg(sv) (					\
-    !sv								\
-    ? 0								\
-    :    SvPOK(sv)						\
-	?   ((PL_Xpv = (XPV*)SvANY(PL_Sv = (sv))) &&		\
-	     (PL_Xpv->xpv_cur > 1 ||				\
-	      (PL_Xpv->xpv_cur && *PL_Sv->sv_u.svu_pv != '0'))	\
-	     ? 1						\
-	     : 0)						\
-	:							\
-	    SvIOK(sv)						\
-	    ? SvIVX(sv) != 0					\
-	    :   SvNOK(sv)					\
-		? SvNVX(sv) != 0.0				\
-		: sv_2bool_flags(sv,0) )
-#  define SvTRUEx(sv) ((PL_Sv = (sv)), SvTRUE(PL_Sv))
+#  define SvTRUEx(sv)      ((PL_Sv = (sv)), SvTRUE(PL_Sv))
+#  define SvTRUEx_nomg(sv) ((PL_Sv = (sv)), SvTRUE_nomg(PL_Sv))
+#  define SvPVXtrue(sv)						\
+    ((PL_Xpv = (XPV*)SvANY(PL_Sv = (sv)))			\
+     && (PL_Xpv->xpv_cur > 1					\
+	 || (PL_Xpv->xpv_cur && *PL_Sv->sv_u.svu_pv != '0')))
 #endif /* __GNU__ */
 
 #define SvIsCOW(sv)	((SvFLAGS(sv) & (SVf_FAKE | SVf_READONLY)) == \
@@ -1873,8 +1872,9 @@ mg.c:1024: warning: left-hand operand of comma expression has no effect
 #define sv_catsv_nomg(dsv, ssv) sv_catsv_flags(dsv, ssv, 0)
 #define sv_catsv_mg(dsv, ssv) sv_catsv_flags(dsv, ssv, SV_GMAGIC|SV_SMAGIC)
 #define sv_catpvn(dsv, sstr, slen) sv_catpvn_flags(dsv, sstr, slen, SV_GMAGIC)
-#define sv_catpvn_mg(sv, sstr, slen) \
-	sv_catpvn_flags(sv, sstr, slen, SV_GMAGIC|SV_SMAGIC);
+#define sv_catpvn_mg(sv, sstr, slen) sv_catpvn_flags(sv, sstr, slen, SV_GMAGIC|SV_SMAGIC);
+#define sv_copypv(dsv, ssv) sv_copypv_flags(dsv, ssv, SV_GMAGIC)
+#define sv_copypv_nomg(dsv, ssv) sv_copypv_flags(dsv, ssv, 0)
 #define sv_2pv(sv, lp) sv_2pv_flags(sv, lp, SV_GMAGIC)
 #define sv_2pv_nolen(sv) sv_2pv(sv, 0)
 #define sv_2pvbyte_nolen(sv) sv_2pvbyte(sv, 0)
@@ -1890,12 +1890,13 @@ mg.c:1024: warning: left-hand operand of comma expression has no effect
 #define sv_cmp_locale(sv1, sv2) sv_cmp_locale_flags(sv1, sv2, SV_GMAGIC)
 #define sv_collxfrm(sv, nxp) sv_cmp_flags(sv, nxp, SV_GMAGIC)
 #define sv_2bool(sv) sv_2bool_flags(sv, SV_GMAGIC)
+#define sv_2bool_nomg(sv) sv_2bool_flags(sv, 0)
 #define sv_insert(bigstr, offset, len, little, littlelen)		\
 	Perl_sv_insert_flags(aTHX_ (bigstr),(offset), (len), (little),	\
 			     (littlelen), SV_GMAGIC)
 
 /* Should be named SvCatPVN_utf8_upgrade? */
-#define sv_catpvn_utf8_upgrade(dsv, sstr, slen, nsv)	\
+#define sv_catpvn_nomg_utf8_upgrade(dsv, sstr, slen, nsv)	\
 	STMT_START {					\
 	    if (!(nsv))					\
 		nsv = newSVpvn_flags(sstr, slen, SVs_TEMP);	\
@@ -1903,7 +1904,7 @@ mg.c:1024: warning: left-hand operand of comma expression has no effect
 		sv_setpvn(nsv, sstr, slen);		\
 	    SvUTF8_off(nsv);				\
 	    sv_utf8_upgrade(nsv);			\
-	    sv_catsv(dsv, nsv);	\
+	    sv_catsv_nomg(dsv, nsv);			\
 	} STMT_END
 
 /*
@@ -2093,23 +2094,23 @@ Evaluates I<sv> more than once.  Sets I<len> to 0 if C<SvOOK(sv)> is false.
 #  define SvOOK_offset(sv, offset) STMT_START {				\
 	assert(sizeof(offset) == sizeof(STRLEN));			\
 	if (SvOOK(sv)) {						\
-	    const U8 *crash = (U8*)SvPVX_const(sv);			\
-	    offset = *--crash;						\
- 	    if (!offset) {						\
-		crash -= sizeof(STRLEN);				\
-		Copy(crash, (U8 *)&offset, sizeof(STRLEN), U8);		\
+	    const U8 *_crash = (U8*)SvPVX_const(sv);			\
+	    (offset) = *--_crash;					\
+	    if (!(offset)) {						\
+		_crash -= sizeof(STRLEN);				\
+		Copy(_crash, (U8 *)&(offset), sizeof(STRLEN), U8);	\
 	    }								\
 	    {								\
 		/* Validate the preceding buffer's sentinels to		\
 		   verify that no-one is using it.  */			\
-		const U8 *const bonk = (U8 *) SvPVX_const(sv) - offset;	\
-		while (crash > bonk) {					\
-		    --crash;						\
-		    assert (*crash == (U8)PTR2UV(crash));		\
+		const U8 *const _bonk = (U8*)SvPVX_const(sv) - (offset);\
+		while (_crash > _bonk) {				\
+		    --_crash;						\
+		    assert (*_crash == (U8)PTR2UV(_crash));		\
 		}							\
 	    }								\
 	} else {							\
-	    offset = 0;							\
+	    (offset) = 0;						\
 	}								\
     } STMT_END
 #else
@@ -2117,13 +2118,13 @@ Evaluates I<sv> more than once.  Sets I<len> to 0 if C<SvOOK(sv)> is false.
 #  define SvOOK_offset(sv, offset) STMT_START {				\
 	assert(sizeof(offset) == sizeof(STRLEN));			\
 	if (SvOOK(sv)) {						\
-	    offset = ((U8*)SvPVX_const(sv))[-1];			\
-	    if (!offset) {						\
+	    (offset) = ((U8*)SvPVX_const(sv))[-1];			\
+	    if (!(offset)) {						\
 		Copy(SvPVX_const(sv) - 1 - sizeof(STRLEN),		\
-		     (U8 *)&offset, sizeof(STRLEN), U8);		\
+		     (U8*)&(offset), sizeof(STRLEN), U8);		\
 	    }								\
 	} else {							\
-	    offset = 0;							\
+	    (offset) = 0;						\
 	}								\
     } STMT_END
 #endif

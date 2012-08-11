@@ -510,7 +510,7 @@ register struct op *Perl_op asm(stringify(OP_IN_REGISTER));
  */
 
 /* define this once if either system, instead of cluttering up the src */
-#if defined(MSDOS) || defined(atarist) || defined(WIN32) || defined(NETWARE)
+#if defined(MSDOS) || defined(WIN32) || defined(NETWARE)
 #define DOSISH 1
 #endif
 
@@ -729,6 +729,8 @@ EXTERN_C int usleep(unsigned int);
 #   define U64_CONST(x) ((U64)x##UL)
 #  elif QUADKIND == QUAD_IS_LONG_LONG
 #   define U64_CONST(x) ((U64)x##ULL)
+#  elif QUADKIND == QUAD_IS___INT64
+#   define U64_CONST(x) ((U64)x##UI64)
 #  else /* best guess we can make */
 #   define U64_CONST(x) ((U64)x##UL)
 #  endif
@@ -2721,12 +2723,12 @@ typedef struct clone_params CLONE_PARAMS;
 #endif
 
 /*
-=for apidoc Am|void|PERL_SYS_INIT|int argc|char** argv
+=for apidoc Am|void|PERL_SYS_INIT|int *argc|char*** argv
 Provides system-specific tune up of the C runtime environment necessary to
 run Perl interpreters. This should be called only once, before creating
 any Perl interpreters.
 
-=for apidoc Am|void|PERL_SYS_INIT3|int argc|char** argv|char** env
+=for apidoc Am|void|PERL_SYS_INIT3|int *argc|char*** argv|char*** env
 Provides system-specific tune up of the C runtime environment necessary to
 run Perl interpreters. This should be called only once, before creating
 any Perl interpreters.
@@ -3491,10 +3493,6 @@ struct ptr_tbl {
     struct ptr_tbl_ent		*tbl_arena_end;
 };
 
-#if defined(iAPX286) || defined(M_I286) || defined(I80286)
-#   define I286
-#endif
-
 #if defined(htonl) && !defined(HAS_HTONL)
 #define HAS_HTONL
 #endif
@@ -3871,6 +3869,11 @@ Gid_t getegid (void);
 
 #ifndef assert
 #  define assert(what)	Perl_assert(what)
+#endif
+#ifdef DEBUGGING
+#  define assert_(what)	assert(what),
+#else
+#  define assert_(what)
 #endif
 
 struct ufuncs {
@@ -5024,6 +5027,10 @@ struct tempsym; /* defined in pp_pack.c */
 #    define PERL_CALLCONV
 #  endif
 #endif
+#ifndef PERL_CALLCONV_NO_RET
+#    define PERL_CALLCONV_NO_RET PERL_CALLCONV
+#endif
+
 #undef PERL_CKDEF
 #undef PERL_PPDEF
 #define PERL_CKDEF(s)	PERL_CALLCONV OP *s (pTHX_ OP *o);
@@ -5315,10 +5322,12 @@ typedef struct am_table_short AMTS;
 #define RESTORE_NUMERIC_STANDARD()	/**/
 #define Atof				my_atof
 #define IN_LOCALE_RUNTIME		0
+#define IN_LOCALE_COMPILETIME		0
 
 #endif /* !USE_LOCALE_NUMERIC */
 
-#if !defined(Strtol) && defined(USE_64_BIT_INT) && defined(IV_IS_QUAD) && QUADKIND == QUAD_IS_LONG_LONG
+#if !defined(Strtol) && defined(USE_64_BIT_INT) && defined(IV_IS_QUAD) && \
+	(QUADKIND == QUAD_IS_LONG_LONG || QUADKIND == QUAD_IS___INT64)
 #    ifdef __hpux
 #        define strtoll __strtoll	/* secret handshake */
 #    endif
@@ -5340,7 +5349,8 @@ typedef struct am_table_short AMTS;
 /* It would be more fashionable to use Strtol() to define atol()
  * (as is done for Atoul(), see below) but for backward compatibility
  * we just assume atol(). */
-#   if defined(USE_64_BIT_INT) && defined(IV_IS_QUAD) && QUADKIND == QUAD_IS_LONG_LONG && defined(HAS_ATOLL)
+#   if defined(USE_64_BIT_INT) && defined(IV_IS_QUAD) && defined(HAS_ATOLL) && \
+	(QUADKIND == QUAD_IS_LONG_LONG || QUADKIND == QUAD_IS___INT64)
 #    ifdef WIN64
 #       define atoll    _atoi64		/* secret handshake */
 #    endif
@@ -5350,7 +5360,8 @@ typedef struct am_table_short AMTS;
 #   endif
 #endif
 
-#if !defined(Strtoul) && defined(USE_64_BIT_INT) && defined(UV_IS_QUAD) && QUADKIND == QUAD_IS_LONG_LONG
+#if !defined(Strtoul) && defined(USE_64_BIT_INT) && defined(UV_IS_QUAD) && \
+	(QUADKIND == QUAD_IS_LONG_LONG || QUADKIND == QUAD_IS___INT64)
 #    ifdef __hpux
 #        define strtoull __strtoull	/* secret handshake */
 #    endif

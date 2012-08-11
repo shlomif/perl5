@@ -3189,24 +3189,6 @@ Perl_swash_fetch(pTHX_ SV *swash, const U8 *ptr, bool do_utf8)
 	    Copy(ptr, PL_last_swash_key, klen, U8);
     }
 
-    if (UTF8_IS_SUPER(ptr) && ckWARN_d(WARN_NON_UNICODE)) {
-	SV** const bitssvp = hv_fetchs(hv, "BITS", FALSE);
-
-	/* This outputs warnings for binary properties only, assuming that
-	 * to_utf8_case() will output any for non-binary.  Also, surrogates
-	 * aren't checked for, as that would warn on things like /\p{Gc=Cs}/ */
-
-	if (! bitssvp || SvUV(*bitssvp) == 1) {
-	    /* User-defined properties can silently match above-Unicode */
-	    SV** const user_defined_svp = hv_fetchs(hv, "USER_DEFINED", FALSE);
-	    if (! user_defined_svp || ! SvUV(*user_defined_svp)) {
-		const UV code_point = utf8n_to_uvuni(ptr, UTF8_MAXBYTES, 0, 0);
-		Perl_warner(aTHX_ packWARN(WARN_NON_UNICODE),
-		    "Code point 0x%04"UVXf" is not Unicode, all \\p{} matches fail; all \\P{} matches succeed", code_point);
-	    }
-	}
-    }
-
     switch ((int)((slen << 3) / needents)) {
     case 1:
 	bit = 1 << (off & 7);
@@ -3829,7 +3811,7 @@ Perl__swash_inversion_hash(pTHX_ SV* const swash)
 					(U8*) SvPVX(*entryp),
 					(U8*) SvPVX(*entryp) + SvCUR(*entryp),
 					0)));
-			/*DEBUG_U(PerlIO_printf(Perl_debug_log, "Adding %"UVXf" to list for %"UVXf"\n", valid_utf8_to_uvchr((U8*) SvPVX(*entryp), 0), u));*/
+			/*DEBUG_U(PerlIO_printf(Perl_debug_log, "%s: %d: Adding %"UVXf" to list for %"UVXf"\n", __FILE__, __LINE__, valid_utf8_to_uvchr((U8*) SvPVX(*entryp), 0), u));*/
 		    }
 		}
 	    }
@@ -3902,14 +3884,14 @@ Perl__swash_inversion_hash(pTHX_ SV* const swash)
 	    /* Make sure there is a mapping to itself on the list */
 	    if (! found_key) {
 		av_push(list, newSVuv(val));
-		/*DEBUG_U(PerlIO_printf(Perl_debug_log, "Adding %"UVXf" to list for %"UVXf"\n", val, val));*/
+		/*DEBUG_U(PerlIO_printf(Perl_debug_log, "%s: %d: Adding %"UVXf" to list for %"UVXf"\n", __FILE__, __LINE__, val, val));*/
 	    }
 
 
 	    /* Simply add the value to the list */
 	    if (! found_inverse) {
 		av_push(list, newSVuv(inverse));
-		/*DEBUG_U(PerlIO_printf(Perl_debug_log, "Adding %"UVXf" to list for %"UVXf"\n", inverse, val));*/
+		/*DEBUG_U(PerlIO_printf(Perl_debug_log, "%s: %d: Adding %"UVXf" to list for %"UVXf"\n", __FILE__, __LINE__, inverse, val));*/
 	    }
 
 	    /* swatch_get() increments the value of val for each element in the
@@ -4088,6 +4070,33 @@ Perl__swash_to_invlist(pTHX_ SV* const swash)
     }
 
     return invlist;
+}
+
+bool
+Perl__is_swash_user_defined(pTHX_ SV* const swash)
+{
+    SV** ptr = hv_fetchs(MUTABLE_HV(SvRV(swash)), "USER_DEFINED", FALSE);
+
+    PERL_ARGS_ASSERT__IS_SWASH_USER_DEFINED;
+
+    if (! ptr) {
+        return FALSE;
+    }
+    return cBOOL(SvUV(*ptr));
+}
+
+SV*
+Perl__get_swash_invlist(pTHX_ SV* const swash)
+{
+    SV** ptr = hv_fetchs(MUTABLE_HV(SvRV(swash)), "INVLIST", FALSE);
+
+    PERL_ARGS_ASSERT__GET_SWASH_INVLIST;
+
+    if (! ptr) {
+        return NULL;
+    }
+
+    return *ptr;
 }
 
 /*

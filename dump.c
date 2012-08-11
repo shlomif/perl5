@@ -883,7 +883,7 @@ Perl_do_op_dump(pTHX_ I32 level, PerlIO *file, const OP *o)
 #ifdef DUMPADDR
     Perl_dump_indent(aTHX_ level, file, "ADDR = 0x%"UVxf" => 0x%"UVxf"\n", (UV)o, (UV)o->op_next);
 #endif
-    if (o->op_flags || o->op_latefree || o->op_latefreed || o->op_attached) {
+    if (o->op_flags || o->op_slabbed || o->op_savefree) {
 	SV * const tmpsv = newSVpvs("");
 	switch (o->op_flags & OPf_WANT) {
 	case OPf_WANT_VOID:
@@ -900,12 +900,8 @@ Perl_do_op_dump(pTHX_ I32 level, PerlIO *file, const OP *o)
 	    break;
 	}
 	append_flags(tmpsv, o->op_flags, op_flags_names);
-	if (o->op_latefree)
-	    sv_catpv(tmpsv, ",LATEFREE");
-	if (o->op_latefreed)
-	    sv_catpv(tmpsv, ",LATEFREED");
-	if (o->op_attached)
-	    sv_catpv(tmpsv, ",ATTACHED");
+	if (o->op_slabbed)  sv_catpvs(tmpsv, ",SLABBED");
+	if (o->op_savefree) sv_catpvs(tmpsv, ",SAVEFREE");
 	Perl_dump_indent(aTHX_ level, file, "FLAGS = (%s)\n", SvCUR(tmpsv) ? SvPVX_const(tmpsv) + 1 : "");
 	SvREFCNT_dec(tmpsv);
     }
@@ -1613,7 +1609,7 @@ Perl_do_sv_dump(pTHX_ I32 level, PerlIO *file, SV *sv, I32 nest, I32 maxnest, bo
 	return;
     }
 
-    if ((type <= SVt_PVLV && !isGV_with_GP(sv)) || type == SVt_PVFM) {
+    if (type <= SVt_PVLV && !isGV_with_GP(sv)) {
 	if (SvPVX_const(sv)) {
 	    STRLEN delta;
 	    if (SvOOK(sv)) {
@@ -1924,12 +1920,9 @@ Perl_do_sv_dump(pTHX_ I32 level, PerlIO *file, SV *sv, I32 nest, I32 maxnest, bo
 	}
  	do_gvgv_dump(level, file, "  GVGV::GV", CvGV(sv));
 	Perl_dump_indent(aTHX_ level, file, "  FILE = \"%s\"\n", CvFILE(sv));
-	if (type == SVt_PVCV)
-	    Perl_dump_indent(aTHX_ level, file, "  DEPTH = %"IVdf"\n", (IV)CvDEPTH(sv));
+	Perl_dump_indent(aTHX_ level, file, "  DEPTH = %"IVdf"\n", (IV)CvDEPTH(sv));
 	Perl_dump_indent(aTHX_ level, file, "  FLAGS = 0x%"UVxf"\n", (UV)CvFLAGS(sv));
 	Perl_dump_indent(aTHX_ level, file, "  OUTSIDE_SEQ = %"UVuf"\n", (UV)CvOUTSIDE_SEQ(sv));
-	if (type == SVt_PVFM)
-	    Perl_dump_indent(aTHX_ level, file, "  LINES = %"IVdf"\n", (IV)FmLINES(sv));
 	Perl_dump_indent(aTHX_ level, file, "  PADLIST = 0x%"UVxf"\n", PTR2UV(CvPADLIST(sv)));
 	if (nest < maxnest) {
 	    do_dump_pad(level+1, file, CvPADLIST(sv), 0);

@@ -242,29 +242,7 @@ perl_construct(pTHXx)
 #endif
     PL_curcop = &PL_compiling;	/* needed by ckWARN, right away */
 
-    /* set read-only and try to insure than we wont see REFCNT==0
-       very often */
-
-    SvREADONLY_on(&PL_sv_undef);
-    SvREFCNT(&PL_sv_undef) = (~(U32)0)/2;
-
-    sv_setpv(&PL_sv_no,PL_No);
-    /* value lookup in void context - happens to have the side effect
-       of caching the numeric forms. However, as &PL_sv_no doesn't contain
-       a string that is a valid numer, we have to turn the public flags by
-       hand:  */
-    SvNV(&PL_sv_no);
-    SvIV(&PL_sv_no);
-    SvIOK_on(&PL_sv_no);
-    SvNOK_on(&PL_sv_no);
-    SvREADONLY_on(&PL_sv_no);
-    SvREFCNT(&PL_sv_no) = (~(U32)0)/2;
-
-    sv_setpv(&PL_sv_yes,PL_Yes);
-    SvNV(&PL_sv_yes);
-    SvIV(&PL_sv_yes);
-    SvREADONLY_on(&PL_sv_yes);
-    SvREFCNT(&PL_sv_yes) = (~(U32)0)/2;
+    init_constants();
 
     SvREADONLY_on(&PL_sv_placeholder);
     SvREFCNT(&PL_sv_placeholder) = (~(U32)0)/2;
@@ -2214,7 +2192,8 @@ S_parse_body(pTHX_ char **env, XSINIT_t xsinit)
 #ifdef PERL_MAD
     {
 	const char *s;
-    if ((s = PerlEnv_getenv("PERL_XMLDUMP"))) {
+    if (!PL_tainting &&
+        (s = PerlEnv_getenv("PERL_XMLDUMP"))) {
 	PL_madskills = 1;
 	PL_minus_c = 1;
 	if (!s || !s[0])
@@ -3454,10 +3433,6 @@ S_minus_v(pTHX)
 		      "\n\nOS/2 port Copyright (c) 1990, 1991, Raymond Chen, Kai Uwe Rommel\n"
 		      "Version 5 port Copyright (c) 1994-2002, Andreas Kaiser, Ilya Zakharevich\n");
 #endif
-#ifdef atarist
-	PerlIO_printf(PerlIO_stdout(),
-		      "atariST series port, ++jrb  bammi@cadence.com\n");
-#endif
 #ifdef __BEOS__
 	PerlIO_printf(PerlIO_stdout(),
 		      "BeOS port Copyright Tom Spindler, 1997-1999\n");
@@ -4163,9 +4138,9 @@ S_init_postdump_symbols(pTHX_ register int argc, register char **argv, register 
 
     PERL_ARGS_ASSERT_INIT_POSTDUMP_SYMBOLS;
 
-    PL_toptarget = newSV_type(SVt_PVFM);
+    PL_toptarget = newSV_type(SVt_PVIV);
     sv_setpvs(PL_toptarget, "");
-    PL_bodytarget = newSV_type(SVt_PVFM);
+    PL_bodytarget = newSV_type(SVt_PVIV);
     sv_setpvs(PL_bodytarget, "");
     PL_formtarget = PL_bodytarget;
 

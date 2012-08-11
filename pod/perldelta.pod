@@ -5,16 +5,16 @@
 [ this is a template for a new perldelta file. Any text flagged as
 XXX needs to be processed before release. ]
 
-perldelta - what is new for perl v5.17.2
+perldelta - what is new for perl v5.17.3
 
 =head1 DESCRIPTION
 
-This document describes differences between the 5.17.1 release and
-the 5.17.2 release.
+This document describes differences between the 5.17.2 release and
+the 5.17.3 release.
 
-If you are upgrading from an earlier release such as 5.17.0, first read
-L<perl5171delta>, which describes differences between 5.17.0 and
-5.17.1.
+If you are upgrading from an earlier release such as 5.17.1, first read
+L<perl5172delta>, which describes differences between 5.17.1 and
+5.17.2.
 
 =head1 Notice
 
@@ -28,6 +28,7 @@ here, but most should go in the L</Performance Enhancements> section.
 
 [ List each enhancement as a =head2 entry ]
 
+<<<<<<< HEAD
 =head2 C<kill> with negative signal names
 
 C<kill> has always allowed a negative signal number, which kills the
@@ -35,6 +36,14 @@ process group instead of a single process.  It has also allowed signal
 names.  But it did not behave consistently, because negative signal names
 were treated as 0.  Now negative signals names like C<-INT> are supported
 and treated the same way as -2 [perl #112990].
+=======
+=head2 Computed Labels
+
+The loop controls C<next>, C<last> and C<redo>, and the special C<dump>
+operator, now allow arbitrary expressions to be used to compute labels at
+run time.  Previously, any argument that was not a constant was treated as
+the empty string.
+>>>>>>> blead
 
 =head1 Security
 
@@ -46,13 +55,28 @@ L</Selected Bug Fixes> section.
 
 =head1 Incompatible Changes
 
-XXX For a release on a stable branch, this section aspires to be:
-
-    There are no changes intentionally incompatible with 5.XXX.XXX
-    If any exist, they are bugs, and we request that you submit a
-    report.  See L</Reporting Bugs> below.
-
 [ List each incompatible change as a =head2 entry ]
+
+=head2 C<$ENV{foo} = undef> deletes value from environ, like C<delete $ENV{foo}>
+
+This facilitates use of C<local()> with C<%ENV> entries.  In previous
+versions of Perl, C<undef> was converted to the empty string.
+
+=head2 Defined values stored in environment are forced to byte strings
+
+A value stored in an environment variable has always been stringified.  In
+this release, it is converted to be only a byte string.  First, it is forced
+to be a only a string.  Then if the string is utf8 and the equivalent of
+C<utf8::downgrade> works, that result is used; otherwise, the equivalent of
+C<utf8::encode> is used, and a warning is issued about wide characters
+(L</Diagnostics>).
+
+=head2 C<given> now aliases the global $_
+
+Instead of assigning to an implicit lexical $_, C<given> now makes the
+global $_ an alias for its argument, just like C<foreach>.  However, it
+still uses lexical $_ if there is lexical $_ in scope (again, just like
+C<foreach>).
 
 =head1 Deprecations
 
@@ -105,22 +129,26 @@ XXX
 
 =item *
 
-L<File::stat> has been upgraded from version 1.06 to 1.07.
-
-Previously C<File::stat>'s overloaded C<-x> and C<-X> operators did not give
-the correct results for directories or executable files when running as
-root. They had been treating executable permissions for root just like for
-any other user, performing group membership tests I<etc> for files not owned
-by root. They now follow the correct Unix behaviour - for a directory they
-are always true, and for a file if any of the three execute permission bits
-are set then they report that root can execute the file. Perl's builtin
-C<-x> and C<-X> operators have always been correct.
+L<B> has been upgraded from version 1.36 to version 1.37. All C<CVf_*> and
+C<GVf_*> and more SV-related flag values are now provided as constants in
+the C<B::> namespace and available for export. The default export list has
+not changed.
 
 =item *
 
-L<Tie::StdHandle> has been upgraded from version 4.2 to 4.3.
+L<B::Deparse> has been upgraded from version 1.15 to 1.16.  It now deparses
+loop controls with the correct precedence.
 
-C<READ> now respects the offset argument to C<read> [perl #112826].
+=item *
+
+L<Storable> has been upgraded from version 2.37 to 2.38.  It can now freeze
+and thaw vstrings correctly.  This causes a slight incompatible change in
+the storage format, so the format version has increased to 2.9.
+
+=item *
+
+L<Data::Dumper> has been optimized to only build a seen-scalar has as
+necessary, thereby speeding up serialization drastically.
 
 =item *
 
@@ -169,13 +197,23 @@ XXX Changes which significantly change existing files in F<pod/> go here.
 However, any changes to F<pod/perldiag.pod> should go in the L</Diagnostics>
 section.
 
+<<<<<<< HEAD
 =head3 L<perlfunc>
+=======
+=head3 L<perlfunc>, L<perlop>
+>>>>>>> blead
 
 =over 4
 
 =item *
 
+<<<<<<< HEAD
 Clarified documentation of C<our>.
+=======
+Loop control verbs (C<dump>, C<goto>, C<next>, C<last> and C<redo>) have
+always had the same precedence as assignment operators, but this was never
+documented until now.
+>>>>>>> blead
 
 =back
 
@@ -200,16 +238,27 @@ include any changes in L<perldiag> that reconcile it to the C<C> code.
 
 XXX Newly added diagnostic messages go here
 
+=over 4
+
+=item *
+
+Attempts to put wide characters into environment variables via %ENV provoke
+the warning "Wide character in setenv".
+
+=back
+
 =head3 New Errors
 
 =over 4
 
 =item *
 
-L<Group name must start with a non-digit word character in regex; marked by <-- HERE in mE<sol>%sE<sol>|perldiag/"Group name must start with a non-digit word character in regex; marked by <-- HERE in m/%s/">
+L<Unterminated delimiter for here document|perldiag/"Unterminated delimiter for here document">
 
-This error has been added for C<(?&0)>, which is invalid.  It used to
-produce an incomprehensible error message [perl #101666].
+This message now occurs when a here document label has an initial quotation mark but the final quotation mark is missing.
+
+This replaces a bogus and misleading error message about not finding the
+label itself [perl #114104].
 
 =back
 
@@ -219,17 +268,7 @@ produce an incomprehensible error message [perl #101666].
 
 =item *
 
-C<chr()> now warns when passed a negative value [perl #83048].
-
-=item *
-
-C<srand()> now warns when passed a value that doesn't fit in a C<UV> (since the
-value will be truncated rather than overflowing) [perl #40605].
-
-=item *
-
-Running perl with the C<-i> flag now warns if no input files are provided on
-the command line [perl #113410].
+XXX L<message|perldiag/"message">
 
 =back
 
@@ -283,9 +322,13 @@ L</Platform Support> section, instead.
 
 =item *
 
+<<<<<<< HEAD
 Building perl with some Windows compilers used to fail due to a problem
 with miniperl's C<glob> operator (which uses the C<perlglob> program)
 deleting the PATH environment variable [perl #113798].
+=======
+XXX
+>>>>>>> blead
 
 =back
 
@@ -323,8 +366,14 @@ source tree.
 
 =over 4
 
+<<<<<<< HEAD
 =item XXX
 
+=======
+=item XXX-some-platform
+
+XXX
+>>>>>>> blead
 
 =back
 
@@ -404,62 +453,59 @@ L</Modules and Pragmata>.
 
 =item *
 
+<<<<<<< HEAD
 A regression introduced in v5.14.0 has been fixed, in which some calls
 to the C<re> module would clobber C<$_> [perl #113750].
+=======
+C<\w> now matches the code points U+200C (ZERO WIDTH NON-JOINER) and
+U+200D (ZERO WIDTH JOINER).  C<\W> no longer matches these.  This change
+is because Unicode corrected their definition of what C<\w> should match.
+>>>>>>> blead
 
 =item *
 
-C<do FILE> now always either sets or clears C<$@>, even when the file can't be
-read. This ensures that testing C<$@> first (as recommended by the
-documentation) always returns the correct result.
+C<dump LABEL> no longer leaks its label.
 
 =item *
 
-The array iterator used for the C<each @array> construct is now correctly
-reset when C<@array> is cleared (RT #75596). This happens for example when the
-array is globally assigned to, as in C<@array = (...)>, but not when its
-B<values> are assigned to. In terms of the XS API, it means that C<av_clear()>
-will now reset the iterator.
-
-This mirrors the behaviour of the hash iterator when the hash is cleared.
+Constant folding no longer changes the behaviour of functions like C<stat>
+and C<truncate> that can take either filenames or handles.
+C<stat 1 ? foo : bar> nows treats its argument as a file name (since it is
+an arbitrary expression), rather than the handle "foo".
 
 =item *
 
-C<< $class->can >>, C<< $class->isa >>, and C<< $class->DOES >> now return
-correct results, regardless of whether that package referred to by C<$class>
-exists [perl #47113].
+C<truncate FOO, $len> no longer falls back to treating "FOO" as a file name
+if the filehandle has been deleted.  This was broken in Perl 5.16.0.
 
 =item *
 
-Arriving signals no longer clear C<$@> [perl #45173].
+Subroutine redefinitions after sub-to-glob and glob-to-glob assignments no
+longer cause double frees or panic messages.
 
 =item *
 
-Allow C<my ()> declarations with an empty variable list [perl #113554].
+C<s///> now turns vstrings into plain strings when performing a
+substitution, even if the resulting string is the same (C<s/a/a/>).
 
 =item *
 
-During parsing, subs declared after errors no longer leave stubs
-[perl #113712].
+Prototype mismatch warnings no longer erroneously treat constant subs as
+having no prototype when they actually have "".
 
 =item *
 
-Closures containing no string evals no longer hang on to their containing
-subroutines, allowing variables closed over by outer subroutines to be
-freed when the outer sub is freed, even if the inner sub still exists
-[perl #89544].
+Constant subroutines and forward declarations no longer prevent prototype
+mismatch warnings from omitting the sub name.
 
 =item *
 
-Duplication of in-memory filehandles by opening with a "<&=" or ">&=" mode
-stopped working properly in 5.16.0.  It was causing the new handle to
-reference a different scalar variable.  This has been fixed [perl #113764].
+C<undef> on a subroutine now clears call checkers.
 
 =item *
 
-C<qr//> expressions no longer crash with custom regular expression engines
-that do not set C<offs> at regular expression compilation time
-[perl #112962].
+The C<ref> operator started leaking memory on blessed objects in Perl
+5.16.0.  This has been fixed [perl #114340].
 
 =item *
 
@@ -605,7 +651,7 @@ here.
 
 XXX Generate this with:
 
-  perl Porting/acknowledgements.pl v5.17.1..HEAD
+  perl Porting/acknowledgements.pl v5.17.2..HEAD
 
 =head1 Reporting Bugs
 

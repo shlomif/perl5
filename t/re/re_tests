@@ -1443,7 +1443,7 @@ abc\N	abc\n	n
 # figures it out.
 \N{U+}	-	c	-	Invalid hexadecimal number
 [\N{U+}]	-	c	-	Invalid hexadecimal number
-\N{U+4AG3}	-	c	-	Illegal hexadecimal digit
+\N{U+4AG3}	-	c	-	Invalid hexadecimal number
 [\N{U+4AG3}]	-	c	-	Invalid hexadecimal number
 abc\N{def	-	c	-	\\N{NAME} must be resolved by the lexer
 
@@ -1457,7 +1457,7 @@ abc\N{def	-	c	-	\\N{NAME} must be resolved by the lexer
 
 # Verify works in single quotish context; regex compiler delivers slightly different msg
 # \N{U+BEEF.BEAD} succeeds here, because can't completely hide it from the outside.
-\N{U+0xBEEF}	-	c	-	Illegal hexadecimal digit
+\N{U+0xBEEF}	-	c	-	Invalid hexadecimal number
 \c`	-	c	-	\"\\c`\" is more clearly written simply as \"\\ \"
 \c1	-	c	-	\"\\c1\" is more clearly written simply as \"q\"
 \cA	\001	y	$&	\1
@@ -1680,4 +1680,25 @@ ab[c\\\](??{"x"})]{3}d	ab\\](d	y	-	-
 
 # rt 113770
 \A(?>\[(?:(?:)(?:R){1}|T|V?|A)\])\z	[A]	y	$&	[A]
+# rt 114068
+/( [^z] $ [^z]+)/xm	aa\nbb\ncc\n	y	$1	a\nbb\ncc\n
+
+# [perl #114220]
+/[\h]/	\x{A0}	y	$&	\xA0
+/[\H]/	\x{BF}	y	$&	\xBF
+/[\H]/	\x{A0}	n	-	-
+/[\H]/	\x{A1}	y	$&	\xA1
+
+[^\n]+	\nb	y	$&	b
+[^\n]+	a\n	y	$&	a
+
+# /a has no effect on properties
+(?a:\p{Any})	\x{100}	y	$&	\x{100}
+(?aa:\p{Any})	\x{100}	y	$&	\x{100}
+
+\w	\x{200C}	y	$&	\x{200C}
+\W	\x{200C}	n	-	-
+\w	\x{200D}	y	$&	\x{200D}
+\W	\x{200D}	n	-	-
+
 # vim: softtabstop=0 noexpandtab

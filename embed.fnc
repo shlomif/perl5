@@ -775,7 +775,6 @@ p	|int	|magic_settaint	|NN SV* sv|NN MAGIC* mg
 p	|int	|magic_setuvar	|NN SV* sv|NN MAGIC* mg
 p	|int	|magic_setvec	|NN SV* sv|NN MAGIC* mg
 p	|int	|magic_setutf8	|NN SV* sv|NN MAGIC* mg
-p	|int	|magic_setvstring|NN SV* sv|NN MAGIC* mg
 p	|int	|magic_set_all_env|NN SV* sv|NN MAGIC* mg
 p	|U32	|magic_sizepack	|NN SV* sv|NN MAGIC* mg
 p	|int	|magic_wipepack	|NN SV* sv|NN MAGIC* mg
@@ -967,6 +966,10 @@ p	|PerlIO*|nextargv	|NN GV* gv
 AnpP	|char*	|ninstr		|NN const char* big|NN const char* bigend \
 				|NN const char* little|NN const char* lend
 Ap	|void	|op_free	|NULLOK OP* arg
+<<<<<<< HEAD
+=======
+Mp	|OP*	|op_unscope	|NULLOK OP* o
+>>>>>>> blead
 #ifdef PERL_CORE
 p	|void	|opslab_free	|NN OPSLAB *slab
 p	|void	|opslab_free_nopad|NN OPSLAB *slab
@@ -1045,13 +1048,14 @@ Amb	|OP*	|ref		|NULLOK OP* o|I32 type
 s	|OP*	|refkids	|NULLOK OP* o|I32 type
 #endif
 Ap	|void	|regdump	|NN const regexp* r
-Ap	|void	|regdump	|NN const regexp* r
 Ap	|SV*	|regclass_swash	|NULLOK const regexp *prog \
 				|NN const struct regnode *node|bool doinit \
 				|NULLOK SV **listsvp|NULLOK SV **altsvp
 #ifdef PERL_IN_REGCOMP_C
 EMs	|void	|add_alternate	|NN AV** alternate_ptr|NN U8* string|STRLEN len
 EMsR	|SV*	|_new_invlist_C_array|NN UV* list
+: Not used currently: EXMs	|bool	|_invlistEQ	|NN SV* const a|NN SV* const b|bool complement_b
+EMiR	|bool	|_invlist_contains_cp|NN SV* const invlist|const UV cp
 #endif
 Ap	|I32	|pregexec	|NN REGEXP * const prog|NN char* stringarg \
 				|NN char* strend|NN char* strbeg|I32 minend \
@@ -1319,7 +1323,6 @@ Apd	|STRLEN	|sv_len		|NULLOK SV *const sv
 Apd	|STRLEN	|sv_len_utf8	|NULLOK SV *const sv
 Apd	|void	|sv_magic	|NN SV *const sv|NULLOK SV *const obj|const int how \
 				|NULLOK const char *const name|const I32 namlen
-pd	|bool	|sv_gmagical_2iv_please|NN SV *sv
 Apd	|MAGIC *|sv_magicext	|NN SV *const sv|NULLOK SV *const obj|const int how \
 				|NULLOK const MGVTBL *const vtbl|NULLOK const char *const name \
 				|const I32 namlen
@@ -1373,6 +1376,9 @@ Apd	|void	|sv_usepvn_flags|NN SV *const sv|NULLOK char* ptr|const STRLEN len\
 Apd	|void	|sv_vcatpvfn	|NN SV *const sv|NN const char *const pat|const STRLEN patlen \
 				|NULLOK va_list *const args|NULLOK SV **const svargs|const I32 svmax \
 				|NULLOK bool *const maybe_tainted
+Apd	|void	|sv_vcatpvfn_flags|NN SV *const sv|NN const char *const pat|const STRLEN patlen \
+				|NULLOK va_list *const args|NULLOK SV **const svargs|const I32 svmax \
+				|NULLOK bool *const maybe_tainted|const U32 flags
 Apd	|void	|sv_vsetpvfn	|NN SV *const sv|NN const char *const pat|const STRLEN patlen \
 				|NULLOK va_list *const args|NULLOK SV **const svargs \
 				|const I32 svmax|NULLOK bool *const maybe_tainted
@@ -1396,7 +1402,8 @@ EiMR	|UV*	|get_invlist_iter_addr	|NN SV* invlist
 EiMR	|UV*	|get_invlist_version_id_addr	|NN SV* invlist
 EiM	|void	|invlist_iterinit|NN SV* invlist
 EsMR	|bool	|invlist_iternext|NN SV* invlist|NN UV* start|NN UV* end
-EsMR	|IV	|invlist_search	|NN SV* const invlist|const UV cp
+EXpMR	|IV	|_invlist_search	|NN SV* const invlist|const UV cp
+EiMR	|UV	|invlist_highest|NN SV* const invlist
 #endif
 #if defined(PERL_IN_REGCOMP_C) || defined(PERL_IN_UTF8_C)
 EXmM	|void	|_invlist_intersection	|NN SV* const a|NN SV* const b|NN SV** i
@@ -1417,6 +1424,8 @@ EXp	|SV*	|_core_swash_init|NN const char* pkg|NN const char* name|NN SV* listsv|
                 |I32 none|bool return_if_undef|NULLOK SV* invlist \
 		|bool passed_in_invlist_has_user_defined_property
 EXMpR	|SV*	|_invlist_contents|NN SV* const invlist
+EXMpR	|bool	|_is_swash_user_defined|NN SV* const swash
+EXMpR	|SV*	|_get_swash_invlist|NN SV* const swash
 #endif
 Ap	|void	|taint_env
 Ap	|void	|taint_proper	|NULLOK const char* f|NN const char *const s
@@ -1691,6 +1700,7 @@ Adpbm	|void	|sv_nounlocking	|NULLOK SV *sv
 Adpb	|void	|sv_nounlocking	|NULLOK SV *sv
 #endif
 Adp	|int	|nothreadhook
+p	|void	|init_constants
 
 #if defined(PERL_IN_DOOP_C)
 sR	|I32	|do_trans_simple	|NN SV * const sv
@@ -1928,8 +1938,9 @@ Es	|regnode*|reg_node	|NN struct RExC_state_t *pRExC_state|U8 op
 Es	|UV	|reg_recode	|const char value|NN SV **encp
 Es	|regnode*|regpiece	|NN struct RExC_state_t *pRExC_state \
 				|NN I32 *flagp|U32 depth
-Es	|regnode*|reg_namedseq	|NN struct RExC_state_t *pRExC_state \
-				|NULLOK UV *valuep|NULLOK I32 *flagp|U32 depth
+Es	|bool	|grok_bslash_N	|NN struct RExC_state_t *pRExC_state \
+				|NULLOK regnode** nodep|NULLOK UV *valuep \
+				|NULLOK I32 *flagp|U32 depth|bool in_char_class
 Es	|void	|reginsert	|NN struct RExC_state_t *pRExC_state \
 				|U8 op|NN regnode *opnd|U32 depth
 Es	|void	|regtail	|NN struct RExC_state_t *pRExC_state \
@@ -1942,6 +1953,9 @@ Es	|U32	|join_exact	|NN struct RExC_state_t *pRExC_state \
 				|U32 flags|NULLOK regnode *val|U32 depth
 EsRn	|char *	|regwhite	|NN struct RExC_state_t *pRExC_state \
 				|NN char *p
+Ei	|void   |alloc_maybe_populate_EXACT|NN struct RExC_state_t *pRExC_state \
+				|NN regnode *node|STRLEN len|UV code_point
+Ei	|U8   |compute_EXACTish|NN struct RExC_state_t *pRExC_state
 Es	|char *	|nextchar	|NN struct RExC_state_t *pRExC_state
 Es	|bool	|reg_skipcomment|NN struct RExC_state_t *pRExC_state
 Es	|void	|scan_commit	|NN const struct RExC_state_t *pRExC_state \
@@ -2213,7 +2227,9 @@ Apd	|void	|sv_catsv_flags	|NN SV *const dsv|NULLOK SV *const ssv|const I32 flags
 Apmd	|STRLEN	|sv_utf8_upgrade_flags|NN SV *const sv|const I32 flags
 Ap	|STRLEN	|sv_utf8_upgrade_flags_grow|NN SV *const sv|const I32 flags|STRLEN extra
 Apd	|char*	|sv_pvn_force_flags|NN SV *const sv|NULLOK STRLEN *const lp|const I32 flags
-Apd	|void	|sv_copypv	|NN SV *const dsv|NN SV *const ssv
+pmb	|void	|sv_copypv	|NN SV *const dsv|NN SV *const ssv
+Apmd	|void	|sv_copypv_nomg	|NN SV *const dsv|NN SV *const ssv
+Apd	|void	|sv_copypv_flags	|NN SV *const dsv|NN SV *const ssv|const I32 flags
 Ap	|char*	|my_atof2	|NN const char *s|NN NV* value
 Apn	|int	|my_socketpair	|int family|int type|int protocol|int fd[2]
 Ap	|int	|my_dirfd	|NULLOK DIR* dir

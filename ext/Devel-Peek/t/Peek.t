@@ -542,6 +542,8 @@ do_test('scalar with pos magic',
 # TAINTEDDIR is not set on: OS2, AMIGAOS, WIN32, MSDOS
 # environment variables may be invisibly case-forced, hence the (?i:PATH)
 # C<scalar(@ARGV)> is turned into an IV on VMS hence the (?:IV)?
+# Perl 5.18 ensures all env vars end up as strings only, hence the (?:,pIOK)?
+# Perl 5.18 ensures even magic vars have public OK, hence the (?:,POK)?
 # VMS is setting FAKE and READONLY flags.  What VMS uses for storing
 # ENV hashes is also not always null terminated.
 #
@@ -549,7 +551,7 @@ do_test('tainted value in %ENV',
         $ENV{PATH}=@ARGV,  # scalar(@ARGV) is a handy known tainted value
 'SV = PVMG\\($ADDR\\) at $ADDR
   REFCNT = 1
-  FLAGS = \\(GMG,SMG,RMG,pIOK,pPOK\\)
+  FLAGS = \\(GMG,SMG,RMG(?:,POK)?(?:,pIOK)?,pPOK\\)
   IV = 0
   NV = 0
   PV = $ADDR "0"\\\0
@@ -688,13 +690,13 @@ do_test('FORMAT',
     XSUBANY = 0					# $] < 5.009
     GVGV::GV = $ADDR\\t"main" :: "PIE"
     FILE = ".*\\b(?i:peek\\.t)"(?:
-    DEPTH = 0
+    DEPTH = 0)?(?:
     MUTEXP = $ADDR
     OWNER = $ADDR)?
     FLAGS = 0x0					# $] < 5.015 || !thr
     FLAGS = 0x1000				# $] >= 5.015 && thr
     OUTSIDE_SEQ = \\d+
-    LINES = 0
+    LINES = 0					# $] < 5.017_003
     PADLIST = $ADDR
     PADNAME = $ADDR\\($ADDR\\) PAD = $ADDR\\($ADDR\\)
     OUTSIDE = $ADDR \\(MAIN\\)');

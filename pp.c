@@ -676,7 +676,6 @@ PP(pp_trans)
 	sv = DEFSV;
 	EXTEND(SP,1);
     }
-    TARG = sv_newmortal();
     if(PL_op->op_type == OP_TRANSR) {
 	STRLEN len;
 	const char * const pv = SvPV(sv,len);
@@ -684,7 +683,10 @@ PP(pp_trans)
 	do_trans(newsv);
 	PUSHs(newsv);
     }
-    else PUSHi(do_trans(sv));
+    else {
+	TARG = sv_newmortal();
+	PUSHi(do_trans(sv));
+    }
     RETURN;
 }
 
@@ -991,7 +993,7 @@ PP(pp_postinc)
     if (SvROK(TOPs))
 	TARG = sv_newmortal();
     sv_setsv(TARG, TOPs);
-    if (!SvREADONLY(TOPs) && SvIOK_notUV(TOPs) && !SvNOK(TOPs) && !SvPOK(TOPs)
+    if (!SvREADONLY(TOPs) && !SvGMAGICAL(TOPs) && SvIOK_notUV(TOPs) && !SvNOK(TOPs) && !SvPOK(TOPs)
         && SvIVX(TOPs) != (inc ? IV_MAX : IV_MIN))
     {
 	SvIV_set(TOPs, SvIVX(TOPs) + (inc ? 1 : -1));
@@ -2180,7 +2182,7 @@ PP(pp_negate)
     {
 	SV * const sv = TOPs;
 
-	if (SvIOK(sv) || (SvGMAGICAL(sv) && SvIOKp(sv))) {
+	if (SvIOK(sv)) {
 	    /* It's publicly an integer */
 	oops_its_an_int:
 	    if (SvIsUV(sv)) {

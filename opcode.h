@@ -522,6 +522,7 @@ EXTCONST char* const PL_op_name[] = {
 	"coreargs",
 	"runcv",
 	"fc",
+	"freed",
 };
 #endif
 
@@ -903,6 +904,7 @@ EXTCONST char* const PL_op_desc[] = {
 	"CORE:: subroutine",
 	"__SUB__",
 	"fc",
+	"freed op",
 };
 #endif
 
@@ -1596,7 +1598,7 @@ EXT Perl_check_t PL_check[] /* or perlvars.h */
 	Perl_ck_ftst,		/* fttty */
 	Perl_ck_ftst,		/* fttext */
 	Perl_ck_ftst,		/* ftbinary */
-	Perl_ck_chdir,		/* chdir */
+	Perl_ck_trunc,		/* chdir */
 	Perl_ck_fun,		/* chown */
 	Perl_ck_fun,		/* chroot */
 	Perl_ck_fun,		/* unlink */
@@ -1847,7 +1849,7 @@ EXTCONST U32 PL_opargs[] = {
 	0x00024401,	/* hslice */
 	0x00004b00,	/* boolkeys */
 	0x00091480,	/* unpack */
-	0x0002140d,	/* pack */
+	0x0002140f,	/* pack */
 	0x00111408,	/* split */
 	0x0002140d,	/* join */
 	0x00002401,	/* list */

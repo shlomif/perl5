@@ -858,6 +858,7 @@ cpan/Encode/lib/Encode/Supported.pod	Documents for supported encodings
 cpan/Encode/lib/Encode/Unicode/UTF7.pm	Encode extension
 cpan/Encode/Makefile.PL			Encode extension makefile writer
 cpan/Encode/MANIFEST			Encode MANIFEST
+cpan/Encode/META.json			Encode META.json
 cpan/Encode/META.yml			Encode META.yml
 cpan/Encode/README			Encode extension
 cpan/Encode/Symbol/Makefile.PL		Encode extension
@@ -1749,12 +1750,15 @@ cpan/Module-Build/t/write_default_maniskip.t
 cpan/Module-Build/t/xs.t
 cpan/Module-Load-Conditional/lib/Module/Load/Conditional.pm	Module::Conditional
 cpan/Module-Load-Conditional/t/01_Module_Load_Conditional.t	Module::Conditional tests
-cpan/Module-Load-Conditional/t/02_Parse_Version.t		Module::Load::Conditional tests
+cpan/Module-Load-Conditional/t/test_lib/a/X.pm			Module::Conditional tests
+cpan/Module-Load-Conditional/t/test_lib/b/X.pm			Module::Conditional tests
 cpan/Module-Load-Conditional/t/to_load/Commented.pm		Module::Conditional tests
 cpan/Module-Load-Conditional/t/to_load/InPod.pm			Module::Load::Conditional tests
 cpan/Module-Load-Conditional/t/to_load/LoadIt.pm		Module::Conditional tests
 cpan/Module-Load-Conditional/t/to_load/LoadMe.pl		Module::Conditional tests
 cpan/Module-Load-Conditional/t/to_load/MustBe/Loaded.pm		Module::Load::Conditional tests
+cpan/Module-Load-Conditional/t/to_load/NotMain.pm		Module::Conditional tests
+cpan/Module-Load-Conditional/t/to_load/NotX.pm			Module::Conditional tests
 cpan/Module-Load-Conditional/t/to_load/ToBeLoaded		Module::Conditional tests
 cpan/Module-Loaded/lib/Module/Loaded.pm	Module::Loaded
 cpan/Module-Loaded/t/01_Module-Loaded.t	Module::Loaded tests
@@ -2205,6 +2209,7 @@ cpan/Socket/Socket.pm			Socket extension Perl module
 cpan/Socket/Socket.xs			Socket extension external subroutines
 cpan/Socket/t/getaddrinfo.t		See if Socket::getaddrinfo works
 cpan/Socket/t/getnameinfo.t		See if Socket::getnameinfo works
+cpan/Socket/t/ip_mreq.t			See if (un)pack_ip_mreq work
 cpan/Socket/t/ipv6_mreq.t		See if (un)pack_ipv6_mreq work
 cpan/Socket/t/sockaddr.t
 cpan/Socket/t/socketpair.t		See if socketpair works
@@ -3370,6 +3375,7 @@ dist/Module-CoreList/corelist			The corelist command-line utility
 dist/Module-CoreList/identify-dependencies	A usage example for Module::CoreList
 dist/Module-CoreList/lib/Module/CoreList.pm	Module::CoreList
 dist/Module-CoreList/lib/Module/CoreList.pod	Module::CoreList
+dist/Module-CoreList/lib/Module/CoreList/TieHashDelta.pm	Module::CoreList guts
 dist/Module-CoreList/Makefile.PL		Module::CoreList
 dist/Module-CoreList/MANIFEST			Module::CoreList
 dist/Module-CoreList/README			Module::CoreList
@@ -4633,8 +4639,10 @@ pod/perl5140delta.pod		Perl changes in version 5.14.0
 pod/perl5141delta.pod		Perl changes in version 5.14.1
 pod/perl5142delta.pod		Perl changes in version 5.14.2
 pod/perl5160delta.pod		Perl changes in version 5.16.0
+pod/perl5161delta.pod		Perl changes in version 5.16.1
 pod/perl5170delta.pod		Perl changes in version 5.17.0
 pod/perl5171delta.pod		Perl changes in version 5.17.1
+pod/perl5172delta.pod		Perl changes in version 5.17.2
 pod/perl561delta.pod		Perl changes in version 5.6.1
 pod/perl56delta.pod		Perl changes in version 5.6
 pod/perl581delta.pod		Perl changes in version 5.8.1
@@ -5064,6 +5072,7 @@ t/lib/strict/refs		Tests of "use strict 'refs'" for strict.t
 t/lib/strict/subs		Tests of "use strict 'subs'" for strict.t
 t/lib/strict/vars		Tests of "use strict 'vars'" for strict.t
 t/lib/subs/subs			Tests of "use subs"
+t/lib/test_require.pm		A test file for t/op/inccode.t
 t/lib/test_use_14937.pm		A test pragma for t/comp/use.t
 t/lib/test_use.pm		A test pragma for t/comp/use.t
 t/lib/universal.t		Tests for functions in universal.c
@@ -5446,6 +5455,7 @@ t/run/dtrace.t			Test for DTrace probes
 t/run/exit.t			Test perl's exit status.
 t/run/fresh_perl.t		Tests that require a fresh perl.
 t/run/locale.t		Tests related to locale handling
+t/run/mad.t			Test vs MAD environment
 t/run/noswitch.t		Test aliasing ARGV for other switch tests
 t/run/runenv.t			Test if perl honors its environment variables.
 t/run/script.t			See if script invocation works
@@ -5587,16 +5597,12 @@ win32/ce-helpers/makedist.pl	WinCE port
 win32/ce-helpers/registry.bat	WinCE port
 win32/config.ce			WinCE port
 win32/config.gc			Win32 base line config.sh (MinGW build)
-win32/config.gc64		Win64 base line config.sh (MinGW build)
 win32/config_H.ce		WinCE port
 win32/config_H.gc		Win32 config header (MinGW build)
-win32/config_H.gc64		Win64 config header (MinGW build)
 win32/config_h.PL		Perl code to convert Win32 config.sh to config.h
 win32/config_H.vc		Win32 config header (Visual C++ build)
-win32/config_H.vc64		Win64 config header (Visual C++ build)
 win32/config_sh.PL		Perl code to update Win32 config.sh from Makefile
 win32/config.vc			Win32 base line config.sh (Visual C++ build)
-win32/config.vc64		Win64 base line config.sh (Visual C++ build)
 win32/create_perllibst_h.pl	creates perllibst.h file for inclusion from perllib.c
 win32/distclean.bat		Remove _ALL_ files not listed here in MANIFEST
 win32/fcrypt.c			crypt() implementation

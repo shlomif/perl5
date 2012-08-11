@@ -1446,12 +1446,9 @@ MODULE = B	PACKAGE = B::IV
 
 #define PVAV_max_ix	sv_SSize_tp | offsetof(struct xpvav, xav_max)
 
-#define PVFM_lines_ix	sv_IVp | offsetof(struct xpvfm, xfm_lines)
-
 #define PVCV_stash_ix	sv_SVp | offsetof(struct xpvcv, xcv_stash) 
 #define PVCV_gv_ix	sv_SVp | offsetof(struct xpvcv, xcv_gv)
 #define PVCV_file_ix	sv_char_pp | offsetof(struct xpvcv, xcv_file)
-#define PVCV_depth_ix	sv_I32p | offsetof(struct xpvcv, xcv_depth)
 #define PVCV_padlist_ix	sv_SVp | offsetof(struct xpvcv, xcv_padlist)
 #define PVCV_outside_ix	sv_SVp | offsetof(struct xpvcv, xcv_outside)
 #define PVCV_outside_seq_ix sv_U32p | offsetof(struct xpvcv, xcv_outside_seq)
@@ -1504,11 +1501,9 @@ IVX(sv)
 	B::IO::IoTYPE = PVIO_type_ix
 	B::IO::IoFLAGS = PVIO_flags_ix
 	B::AV::MAX = PVAV_max_ix
-	B::FM::LINES = PVFM_lines_ix
 	B::CV::STASH = PVCV_stash_ix
 	B::CV::GV = PVCV_gv_ix
 	B::CV::FILE = PVCV_file_ix
-	B::CV::DEPTH = PVCV_depth_ix
 	B::CV::PADLIST = PVCV_padlist_ix
 	B::CV::OUTSIDE = PVCV_outside_ix
 	B::CV::OUTSIDE_SEQ = PVCV_outside_seq_ix
@@ -1961,6 +1956,17 @@ AvFLAGS(av)
 
 #endif
 
+MODULE = B	PACKAGE = B::FM		PREFIX = Fm
+
+#if PERL_VERSION > 7 || (PERL_VERSION == 7 && PERL_SUBVERSION >= 3)
+# undef FmLINES
+# define FmLINES(sv) 0
+#endif
+
+IV
+FmLINES(form)
+	B::FM	form
+
 MODULE = B	PACKAGE = B::CV		PREFIX = Cv
 
 U32
@@ -1975,6 +1981,10 @@ CvSTART(cv)
     PPCODE:
 	PUSHs(make_op_object(aTHX_ CvISXSUB(cv) ? NULL
 			     : ix ? CvROOT(cv) : CvSTART(cv)));
+
+I32
+CvDEPTH(cv)
+        B::CV   cv
 
 void
 CvXSUB(cv)

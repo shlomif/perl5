@@ -19,19 +19,9 @@
  *	op_type		The type of the operation.
  *	op_opt		Whether or not the op has been optimised by the
  *			peephole optimiser.
- *
- *			See the comments in S_clear_yystack() for more
- *			details on the following three flags:
- *
- *	op_latefree	tell op_free() to clear this op (and free any kids)
- *			but not yet deallocate the struct. This means that
- *			the op may be safely op_free()d multiple times
- *	op_latefreed	an op_latefree op has been op_free()d
- *	op_attached	this op (sub)tree has been attached to a CV
  *	op_slabbed	allocated via opslab
  *	op_savefree	on savestack via SAVEFREEOP
- *
- *	op_spare	a spare bit!
+ *	op_spare	Four spare bits!
  *	op_flags	Flags common to all operations.  See OPf_* below.
  *	op_private	Flags peculiar to a particular operation (BUT,
  *			by default, set to the number of children until
@@ -61,12 +51,9 @@ typedef PERL_BITFIELD16 Optype;
     PADOFFSET	op_targ;		\
     PERL_BITFIELD16 op_type:9;		\
     PERL_BITFIELD16 op_opt:1;		\
-    PERL_BITFIELD16 op_latefree:1;	\
-    PERL_BITFIELD16 op_latefreed:1;	\
-    PERL_BITFIELD16 op_attached:1;	\
     PERL_BITFIELD16 op_slabbed:1;	\
     PERL_BITFIELD16 op_savefree:1;	\
-    PERL_BITFIELD16 op_spare:1;		\
+    PERL_BITFIELD16 op_spare:4;		\
     U8		op_flags;		\
     U8		op_private;
 #endif
@@ -761,12 +748,8 @@ struct opslab {
 
 # define OPSLOT_HEADER		STRUCT_OFFSET(OPSLOT, opslot_op)
 # define OPSLOT_HEADER_P	(OPSLOT_HEADER/sizeof(I32 *))
-# ifdef DEBUGGING
-#  define OpSLOT(o)		(assert(o->op_slabbed), \
+# define OpSLOT(o)		(assert_(o->op_slabbed) \
 				 (OPSLOT *)(((char *)o)-OPSLOT_HEADER))
-# else
-#  define OpSLOT(o)		((OPSLOT *)(((char *)o)-OPSLOT_HEADER))
-# endif
 # define OpSLAB(o)		OpSLOT(o)->opslot_slab
 # define OpslabREFCNT_dec(slab)      \
 	(((slab)->opslab_refcnt == 1) \

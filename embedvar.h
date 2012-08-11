@@ -67,6 +67,10 @@
 #define PL_Mem			(vTHX->IMem)
 #define PL_MemParse		(vTHX->IMemParse)
 #define PL_MemShared		(vTHX->IMemShared)
+<<<<<<< HEAD
+=======
+#define PL_NonL1NonFinalFold	(vTHX->INonL1NonFinalFold)
+>>>>>>> blead
 #define PL_PerlSpace		(vTHX->IPerlSpace)
 #define PL_PosixAlnum		(vTHX->IPosixAlnum)
 #define PL_PosixAlpha		(vTHX->IPosixAlpha)

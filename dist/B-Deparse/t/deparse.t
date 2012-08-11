@@ -13,7 +13,7 @@ use warnings;
 use strict;
 use Test::More;
 
-my $tests = 17; # not counting those in the __DATA__ section
+my $tests = 18; # not counting those in the __DATA__ section
 
 use B::Deparse;
 my $deparse = B::Deparse->new();
@@ -242,6 +242,18 @@ SKIP: {
 	  'ambient_pragmas do not mess with compiling scope';
    `;
 }
+
+# multiple statements on format lines
+$a = `$^X $path "-MO=Deparse" -e "format =" -e "\@" -e "x();z()" -e. 2>&1`;
+$a =~ s/-e syntax OK\n//g;
+$a =~ s/z\(\);/z()/;
+is($a, <<'EOCODH', 'multiple statements on format lines');
+format STDOUT =
+@
+x(); z()
+.
+EOCODH
+
 
 done_testing($tests);
 
@@ -1145,6 +1157,13 @@ $_ = ($a xor not +($1 || 2) ** 2);
 () = warn;
 () = warn() + 1;
 () = setpgrp() + 1;
+####
+# loopexes have assignment prec
+() = (CORE::dump a) | 'b';
+() = (goto a) | 'b';
+() = (last a) | 'b';
+() = (next a) | 'b';
+() = (redo a) | 'b';
 ####
 # [perl #63558] open local(*FH)
 open local *FH;

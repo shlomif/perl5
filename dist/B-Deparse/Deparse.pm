@@ -20,7 +20,7 @@ use B qw(class main_root main_start main_cv svref_2object opnumber perlstring
          CVf_METHOD CVf_LVALUE
 	 PMf_KEEP PMf_GLOBAL PMf_CONTINUE PMf_EVAL PMf_ONCE
 	 PMf_MULTILINE PMf_SINGLELINE PMf_FOLD PMf_EXTENDED);
-$VERSION = '1.15';
+$VERSION = '1.16';
 use strict;
 use vars qw/$AUTOLOAD/;
 use warnings ();
@@ -301,6 +301,7 @@ BEGIN {
 #  1             statement modifiers
 #  0.5           statements, but still print scopes as do { ... }
 #  0             statement level
+# -1             format body
 
 # Nonprinting characters with special meaning:
 # \cS - steal parens (see maybe_parens_unop)
@@ -895,7 +896,7 @@ Carp::confess("SPECIAL in deparse_sub") if $cv->isa("B::SPECIAL");
 	    for(my$o=$lineseq->first; $$o; $o=$o->sibling) {
 		push @ops, $o;
 	    }
-	    $body = $self->lineseq(undef, @ops).";";
+	    $body = $self->lineseq(undef, 0, @ops).";";
 	    my $scope_en = $self->find_scope_en($lineseq);
 	    if (defined $scope_en) {
 		my $subs = join"", $self->seq_subs($scope_en);
@@ -939,7 +940,7 @@ sub deparse_format {
 	push @text, "\f".$self->const_sv($kid)->PV;
 	$kid = $kid->sibling;
 	for (; not null $kid; $kid = $kid->sibling) {
-	    push @exprs, $self->deparse($kid, 0);
+	    push @exprs, $self->deparse($kid, -1);
 	}
 	push @text, "\f".join(", ", @exprs)."\n" if @exprs;
 	$op = $op->sibling;
@@ -1139,7 +1140,7 @@ sub DESTROY {}	#	Do not AUTOLOAD
 # any subroutine declarations to the deparsed ops, otherwise we
 # append appropriate declarations.
 sub lineseq {
-    my($self, $root, @ops) = @_;
+    my($self, $root, $cx, @ops) = @_;
     my($expr, @exprs);
 
     my $out_cop = $self->{'curcop'};
@@ -1160,12 +1161,13 @@ sub lineseq {
     $self->walk_lineseq($root, \@ops,
 		       sub { push @exprs, $_[0]} );
 
-    my $body = join(";\n", grep {length} @exprs);
+    my $sep = $cx ? '; ' : ";\n";
+    my $body = join($sep, grep {length} @exprs);
     my $subs = "";
     if (defined $root && defined $limit_seq && !$self->{'in_format'}) {
 	$subs = join "\n", $self->seq_subs($limit_seq);
     }
-    return join(";\n", grep {length} $body, $subs);
+    return join($sep, grep {length} $body, $subs);
 }
 
 sub scopeop {
@@ -1200,9 +1202,9 @@ sub scopeop {
 	push @kids, $kid;
     }
     if ($cx > 0) { # inside an expression, (a do {} while for lineseq)
-	return "do {\n\t" . $self->lineseq($op, @kids) . "\n\b}";
+	return "do {\n\t" . $self->lineseq($op, 0, @kids) . "\n\b}";
     } else {
-	my $lineseq = $self->lineseq($op, @kids);
+	my $lineseq = $self->lineseq($op, $cx, @kids);
 	return (length ($lineseq) ? "$lineseq;" : "");
     }
 }
@@ -2155,10 +2157,10 @@ sub loopex {
     } elsif (class($op) eq "OP") {
 	# no-op
     } elsif (class($op) eq "UNOP") {
-	(my $kid = $self->deparse($op->first, 16)) =~ s/^\cS//;
+	(my $kid = $self->deparse($op->first, 7)) =~ s/^\cS//;
 	$name .= " $kid";
     }
-    return $self->maybe_parens($name, $cx, 16);
+    return $self->maybe_parens($name, $cx, 7);
 }
 
 sub pp_last { loopex(@_, "last") }
@@ -3011,7 +3013,7 @@ sub loop_common {
 	for (; $$state != $$cont; $state = $state->sibling) {
 	    push @states, $state;
 	}
-	$body = $self->lineseq(undef, @states);
+	$body = $self->lineseq(undef, 0, @states);
 	if (defined $cond and not is_scope $cont and $self->{'expand'} < 3) {
 	    $head = "for ($init; $cond; " . $self->deparse($cont, 1) .") ";
 	    $cont = "\cK";

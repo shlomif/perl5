@@ -250,7 +250,6 @@ use File::Glob qw(:case);
                 )
         ],
         'UPSTREAM'   => 'cpan',
-        'CUSTOMIZED' => ['t/open.t'],
     },
 
     'AutoLoader' => {
@@ -365,7 +364,7 @@ use File::Glob qw(:case);
 
     'Compress::Raw::Bzip2' => {
         'MAINTAINER'   => 'pmqs',
-        'DISTRIBUTION' => 'PMQS/Compress-Raw-Bzip2-2.052.tar.gz',
+        'DISTRIBUTION' => 'PMQS/Compress-Raw-Bzip2-2.055.tar.gz',
         'FILES'        => q[cpan/Compress-Raw-Bzip2],
         'EXCLUDED'     => [
             qr{^t/Test/},
@@ -376,7 +375,7 @@ use File::Glob qw(:case);
 
     'Compress::Raw::Zlib' => {
         'MAINTAINER'   => 'pmqs',
-        'DISTRIBUTION' => 'PMQS/Compress-Raw-Zlib-2.054.tar.gz',
+        'DISTRIBUTION' => 'PMQS/Compress-Raw-Zlib-2.056.tar.gz',
 
         'FILES'    => q[cpan/Compress-Raw-Zlib],
         'EXCLUDED' => [
@@ -623,7 +622,7 @@ use File::Glob qw(:case);
 
     'Encode' => {
         'MAINTAINER'   => 'dankogai',
-        'DISTRIBUTION' => 'DANKOGAI/Encode-2.44.tar.gz',
+        'DISTRIBUTION' => 'DANKOGAI/Encode-2.45.tar.gz',
         'FILES'        => q[cpan/Encode],
         'UPSTREAM'     => 'cpan',
     },
@@ -1022,7 +1021,7 @@ use File::Glob qw(:case);
 
     'IO-Compress' => {
         'MAINTAINER'   => 'pmqs',
-        'DISTRIBUTION' => 'PMQS/IO-Compress-2.052.tar.gz',
+        'DISTRIBUTION' => 'PMQS/IO-Compress-2.055.tar.gz',
         'FILES'        => q[cpan/IO-Compress],
         'EXCLUDED'     => [qr{t/Test/}],
         'UPSTREAM'     => 'cpan',
@@ -1244,14 +1243,13 @@ use File::Glob qw(:case);
 
     'Module::Build' => {
         'MAINTAINER'   => 'kwilliams',
-        'DISTRIBUTION' => 'LEONT/Module-Build-0.40.tar.gz',
+        'DISTRIBUTION' => 'LEONT/Module-Build-0.4002.tar.gz',
         'FILES'        => q[cpan/Module-Build],
         'EXCLUDED'     => [
             qw( t/par.t
                 t/signature.t
                 ),
             qr{^contrib/},
-            qr{^devtools},
             qr{^inc},
         ],
         'CUSTOMIZED' => ['lib/Module/Build/ConfigData.pm'],
@@ -1260,7 +1258,7 @@ use File::Glob qw(:case);
 
     'Module::CoreList' => {
         'MAINTAINER'   => 'bingos',
-        'DISTRIBUTION' => 'BINGOS/Module-CoreList-2.68.tar.gz',
+        'DISTRIBUTION' => 'BINGOS/Module-CoreList-2.69.tar.gz',
         'FILES'        => q[dist/Module-CoreList],
         'UPSTREAM'     => 'blead',
     },
@@ -1274,7 +1272,7 @@ use File::Glob qw(:case);
 
     'Module::Load::Conditional' => {
         'MAINTAINER'   => 'kane',
-        'DISTRIBUTION' => 'BINGOS/Module-Load-Conditional-0.50.tar.gz',
+        'DISTRIBUTION' => 'BINGOS/Module-Load-Conditional-0.52.tar.gz',
         'FILES'        => q[cpan/Module-Load-Conditional],
         'UPSTREAM'     => 'cpan',
     },
@@ -1288,7 +1286,7 @@ use File::Glob qw(:case);
 
     'Module::Metadata' => {
         'MAINTAINER'   => 'dagolden',
-        'DISTRIBUTION' => 'DAGOLDEN/Module-Metadata-1.000009.tar.gz',
+        'DISTRIBUTION' => 'VPIT/Module-Metadata-1.000010.tar.gz',
         'FILES'        => q[cpan/Module-Metadata],
         'EXCLUDED'     => [
             qr{^maint},
@@ -1383,7 +1381,6 @@ use File::Glob qw(:case);
         'MAINTAINER'   => 'dagolden',
         'DISTRIBUTION' => 'DAGOLDEN/Parse-CPAN-Meta-1.4404.tar.gz',
         'FILES'        => q[cpan/Parse-CPAN-Meta],
-        'EXCLUDED'     => [],
         'UPSTREAM'     => 'cpan',
     },
 
@@ -1560,7 +1557,6 @@ use File::Glob qw(:case);
         'CUSTOMIZED' => [
             qw( scripts/pod2man.PL
                 scripts/pod2text.PL
-                pod/perlpodstyle.pod
                 ),
         ],
         'MAP' => {
@@ -1637,7 +1633,7 @@ use File::Glob qw(:case);
 
     'Socket' => {
         'MAINTAINER'   => 'pevans',
-        'DISTRIBUTION' => 'PEVANS/Socket-2.001.tar.gz',
+        'DISTRIBUTION' => 'PEVANS/Socket-2.002.tar.gz',
         'FILES'        => q[cpan/Socket],
         'UPSTREAM'     => 'cpan',
     },
@@ -1745,7 +1741,6 @@ use File::Glob qw(:case);
         'UPSTREAM'   => 'cpan',
         'CUSTOMIZED' => [
             qw( t/source.t
-                t/testargs.t
                 ),
         ],
     },
@@ -1927,12 +1922,13 @@ use File::Glob qw(:case);
 
     'Time::Local' => {
         'MAINTAINER'   => 'drolsky',
-        'DISTRIBUTION' => 'FLORA/Time-Local-1.2000.tar.gz',
+        'DISTRIBUTION' => 'DROLSKY/Time-Local-1.2300.tar.gz',
         'FILES'        => q[cpan/Time-Local],
         'EXCLUDED'     => [
             qw( t/pod-coverage.t
                 t/pod.t
                 ),
+            qr{^t/release-.*\.t},
         ],
         'UPSTREAM' => 'cpan',
     },

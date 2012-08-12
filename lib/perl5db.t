@@ -28,7 +28,7 @@ BEGIN {
     }
 }
 
-plan(35);
+plan(36);
 
 my $rc_filename = '.perldb';
 
@@ -960,6 +960,35 @@ package main;
         'l followed by l and then followed by -',
     );
 }
+
+{
+    my $wrapper = DebugWrap->new(
+        {
+            cmds =>
+            [
+                'l fact',
+                'q',
+            ],
+            prog => '../lib/perl5db/t/test-l-statement-2',
+        }
+    );
+
+    my $first_l_out = qr/
+        6\s+sub\ fact\ \{\n
+        7:\s+my\ \$n\ =\ shift;\n
+        8:\s+if\ \(\$n\ >\ 1\)\ \{\n
+        9:\s+return\ \$n\ \*\ fact\(\$n\ -\ 1\);
+    /msx;
+
+    $wrapper->contents_like(
+        qr/
+            DB<1>\s+l\ fact\n
+            $first_l_out
+        /msx,
+        'l subroutine_name',
+    );
+}
+
 END {
     1 while unlink ($rc_filename, $out_fn);
 }

@@ -28,7 +28,7 @@ BEGIN {
     }
 }
 
-plan(36);
+plan(37);
 
 my $rc_filename = '.perldb';
 
@@ -986,6 +986,38 @@ package main;
             $first_l_out
         /msx,
         'l subroutine_name',
+    );
+}
+
+{
+    my $wrapper = DebugWrap->new(
+        {
+            cmds =>
+            [
+                'b fact',
+                'c',
+                # Repeat several times to avoid @typeahead problems.
+                '.',
+                '.',
+                '.',
+                '.',
+                'q',
+            ],
+            prog => '../lib/perl5db/t/test-l-statement-2',
+        }
+    );
+
+    my $line_out = qr /
+        ^main::fact\([^\n]*?:7\):\n
+        ^7:\s+my\ \$n\ =\ shift;\n
+    /msx;
+
+    $wrapper->contents_like(
+        qr/
+            $line_out
+            $line_out
+        /msx,
+        'Test the "." command',
     );
 }
 

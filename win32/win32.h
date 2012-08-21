@@ -48,8 +48,7 @@
 /* now even GCC supports __declspec() */
 
 #if defined(PERLDLL)
-#define DllExport
-/*#define DllExport __declspec(dllexport)*/	/* noises with VC5+sp3 */
+#define DllExport __declspec(dllexport)
 #else
 #define DllExport __declspec(dllimport)
 #endif
@@ -167,23 +166,9 @@ struct utsname {
 
 #define PERL_NO_FORCE_LINK		/* no need for PL_force_link_funcs */
 
-/* Define PERL_WIN32_SOCK_DLOAD to have Perl dynamically load the winsock
-   DLL when needed. Don't use if your compiler supports delayloading (ie, VC++ 6.0)
-	-- BKS 5-29-2000 */
-#if !(defined(_M_IX86) && _MSC_VER >= 1200)
-#define PERL_WIN32_SOCK_DLOAD
-#endif
 #define ENV_IS_CASELESS
 
 #define PIPESOCK_MODE	"b"		/* pipes, sockets default to binmode */
-
-#ifndef VER_PLATFORM_WIN32_WINDOWS	/* VC-2.0 headers don't have this */
-#define VER_PLATFORM_WIN32_WINDOWS	1
-#endif
-
-#ifndef FILE_SHARE_DELETE		/* VC-4.0 headers don't have this */
-#define FILE_SHARE_DELETE		0x00000004
-#endif
 
 /* access() mode bits */
 #ifndef R_OK
@@ -202,13 +187,11 @@ struct utsname {
 
 /* Compiler-specific stuff. */
 
-#if defined(_MSC_VER) || defined(__MINGW32__)
 /* VC uses non-standard way to determine the size and alignment if bit-fields */
-/* MinGW will compiler with -mms-bitfields, so should use the same types */
-#  define PERL_BITFIELD8  unsigned char
-#  define PERL_BITFIELD16 unsigned short
-#  define PERL_BITFIELD32 unsigned int
-#endif
+/* MinGW will compile with -mms-bitfields, so should use the same types */
+#define PERL_BITFIELD8  unsigned char
+#define PERL_BITFIELD16 unsigned short
+#define PERL_BITFIELD32 unsigned int
 
 #ifdef _MSC_VER			/* Microsoft Visual C++ */
 
@@ -219,9 +202,6 @@ typedef unsigned short	mode_t;
 #endif
 
 #pragma  warning(disable: 4102)	/* "unreferenced label" */
-
-/* Visual C thinks that a pointer to a member variable is 16 bytes in size. */
-#define PERL_MEMBER_PTR_SIZE	16
 
 #define isnan		_isnan
 #define snprintf	_snprintf
@@ -265,14 +245,11 @@ typedef long		gid_t;
 #  endif
 #endif
 
-#endif /* __MINGW32__ */
-
-/* both GCC/Mingw32 and MSVC++ 4.0 are missing this, so we put it here */
 #ifndef CP_UTF8
 #  define CP_UTF8	65001
 #endif
 
-/* compatibility stuff for other compilers goes here */
+#endif /* __MINGW32__ */
 
 #ifndef _INTPTR_T_DEFINED
 typedef int		intptr_t;

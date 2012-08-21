@@ -784,6 +784,8 @@ currently-compiling function.
 The function I<func> is linked into the pad, and its C<CvOUTSIDE> link
 to the outer scope is weakened to avoid a reference loop.
 
+One reference count is stolen, so you may need to do C<SvREFCNT_inc(func)>.
+
 I<optype> should be an opcode indicating the type of operation that the
 pad entry is to support.  This doesn't affect operational semantics,
 but is used for debugging.
@@ -812,7 +814,7 @@ Perl_pad_add_anon(pTHX_ CV* func, I32 optype)
     if (SvTYPE(func) == SVt_PVCV || !CvOUTSIDE(func))
 	av_store(PL_comppad, ix, (SV*)func);
     else {
-	SV *rv = newRV_inc((SV *)func);
+	SV *rv = newRV_noinc((SV *)func);
 	sv_rvweaken(rv);
 	assert (SvTYPE(func) == SVt_PVFM);
 	av_store(PL_comppad, ix, rv);
@@ -1439,7 +1441,7 @@ Perl_pad_setsv(pTHX_ PADOFFSET po, SV* sv)
 /*
 =for apidoc m|void|pad_block_start|int full
 
-Update the pad compilation state variables on entry to a new block
+Update the pad compilation state variables on entry to a new block.
 
 =cut
 */
@@ -1647,7 +1649,7 @@ S_pad_reset(pTHX)
     );
 
     if (!PL_tainting) {	/* Can't mix tainted and non-tainted temporaries. */
-        register I32 po;
+        I32 po;
 	for (po = AvMAX(PL_comppad); po > PL_padix_floor; po--) {
 	    if (PL_curpad[po] && !SvIMMORTAL(PL_curpad[po]))
 		SvPADTMP_off(PL_curpad[po]);
@@ -2079,6 +2081,9 @@ Perl_cv_clone(pTHX_ CV *proto)
 	SV* const const_sv = op_const_sv(CvSTART(cv), cv);
 	if (const_sv) {
 	    SvREFCNT_dec(cv);
+            /* For this calling case, op_const_sv returns a *copy*, which we
+               donate to newCONSTSUB. Yes, this is ugly, and should be killed.
+               Need to fix how lib/constant.pm works to eliminate this.  */
 	    cv = newCONSTSUB(CvSTASH(proto), NULL, const_sv);
 	}
 	else {

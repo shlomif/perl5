@@ -3,7 +3,7 @@ package Module::CoreList::TieHashDelta;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = "2.70";
+$VERSION = "2.72";
 
 sub TIEHASH {
     my ($class, $changed, $removed, $parent) = @_;
@@ -68,7 +68,7 @@ sub FIRSTKEY {
 
 sub NEXTKEY {
     my ($self) = @_;
-    each $self->{changed};
+    each %{$self->{changed}};
 }
 
 1;

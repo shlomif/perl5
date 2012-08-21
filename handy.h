@@ -101,7 +101,7 @@ Null SV pointer. (No longer available when C<PERL_CORE> is defined.)
 #endif /* NeXT || __NeXT__ */
 
 #ifndef HAS_BOOL
-# if defined(UTS) || defined(VMS)
+# if defined(VMS)
 #  define bool int
 # else
 #  define bool char
@@ -123,7 +123,7 @@ Null SV pointer. (No longer available when C<PERL_CORE> is defined.)
 #if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) || (defined(__SUNPRO_C)) /* C99 or close enough. */
 #  define FUNCTION__ __func__
 #else
-#  if (defined(_MSC_VER) && _MSC_VER < 1300) || /* Pre-MSVC 7.0 has neither __func__ nor __FUNCTION and no good workarounds, either. */ \
+#  if (defined(_MSC_VER) && _MSC_VER < 1300) || /* MSVC6 has neither __func__ nor __FUNCTION and no good workarounds, either. */ \
       (defined(__DECC_VER)) /* Tru64 or VMS, and strict C89 being used, but not modern enough cc (in Tur64, -c99 not known, only -std1). */
 #    define FUNCTION__ ""
 #  else

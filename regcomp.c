@@ -2661,7 +2661,7 @@ S_make_trie_failtable(pTHX_ RExC_state_t *pRExC_state, regnode *source,  regnode
  *      'ss' or not is not knowable at compile time.  It will match iff the
  *      target string is in UTF-8, unlike the EXACTFU nodes, where it always
  *      matches; and the EXACTFL and EXACTFA nodes where it never does.  Thus
- *      it can't be folded to "ss" at compile time, unlike EXACTFU does as
+ *      it can't be folded to "ss" at compile time, unlike EXACTFU does (as
  *      described in item 3).  An assumption that the optimizer part of
  *      regexec.c (probably unwittingly) makes is that a character in the
  *      pattern corresponds to at most a single character in the target string.
@@ -3663,7 +3663,7 @@ S_study_chunk(pTHX_ RExC_state_t *pRExC_state, regnode **scanp,
 		uc = utf8_to_uvchr_buf(s, s + l, NULL);
 		l = utf8_length(s, s + l);
 	    }
-	    else if (has_exactf_sharp_s) {
+	    if (has_exactf_sharp_s) {
 		RExC_seen |= REG_SEEN_EXACTF_SHARP_S;
 	    }
 	    min += l - min_subtract;
@@ -3960,6 +3960,7 @@ S_study_chunk(pTHX_ RExC_state_t *pRExC_state, regnode **scanp,
 		      && !(data->flags & SF_HAS_EVAL)
 		      && !deltanext	/* atom is fixed width */
 		      && minnext != 0	/* CURLYM can't handle zero width */
+                      && ! (RExC_seen & REG_SEEN_EXACTF_SHARP_S) /* Nor \xDF */
 		) {
 		    /* XXXX How to optimize if data == 0? */
 		    /* Optimize to a simpler form.  */
@@ -5206,6 +5207,50 @@ S_compile_runtime_code(pTHX_ RExC_state_t * const pRExC_state,
 }
 
 
+STATIC bool
+S_setup_longest(pTHX_ RExC_state_t *pRExC_state, SV* sv_longest, SV** rx_utf8, SV** rx_substr, I32* rx_end_shift, I32 lookbehind, I32 offset, I32 *minlen, STRLEN longest_length, bool eol, bool meol)
+{
+    /* This is the common code for setting up the floating and fixed length
+     * string data extracted from Perlre_op_compile() below.  Returns a boolean
+     * as to whether succeeded or not */
+
+    I32 t,ml;
+
+    if (! (longest_length
+           || (eol /* Can't have SEOL and MULTI */
+               && (! meol || (RExC_flags & RXf_PMf_MULTILINE)))
+          )
+            /* See comments for join_exact for why REG_SEEN_EXACTF_SHARP_S */
+        || (RExC_seen & REG_SEEN_EXACTF_SHARP_S))
+    {
+        return FALSE;
+    }
+
+    /* copy the information about the longest from the reg_scan_data
+        over to the program. */
+    if (SvUTF8(sv_longest)) {
+        *rx_utf8 = sv_longest;
+        *rx_substr = NULL;
+    } else {
+        *rx_substr = sv_longest;
+        *rx_utf8 = NULL;
+    }
+    /* end_shift is how many chars that must be matched that
+        follow this item. We calculate it ahead of time as once the
+        lookbehind offset is added in we lose the ability to correctly
+        calculate it.*/
+    ml = minlen ? *(minlen) : (I32)longest_length;
+    *rx_end_shift = ml - offset
+        - longest_length + (SvTAIL(sv_longest) != 0)
+        + lookbehind;
+
+    t = (eol/* Can't have SEOL and MULTI */
+         && (! meol || (RExC_flags & RXf_PMf_MULTILINE)));
+    fbm_compile(sv_longest, t ? FBMcf_TAIL : 0);
+
+    return TRUE;
+}
+
 /*
  * Perl_re_op_compile - the perl internal RE engine's function to compile a
  * regular expression into internal code.
@@ -5258,7 +5303,7 @@ Perl_re_op_compile(pTHX_ SV ** const patternp, int pat_count,
     dVAR;
     REGEXP *rx;
     struct regexp *r;
-    register regexp_internal *ri;
+    regexp_internal *ri;
     STRLEN plen;
     char  * VOL exp;
     char* xend;
@@ -6173,105 +6218,56 @@ reStudy:
 	scan_commit(pRExC_state, &data,&minlen,0);
 	SvREFCNT_dec(data.last_found);
 
-        /* Note that code very similar to this but for anchored string 
-           follows immediately below, changes may need to be made to both. 
-           Be careful. 
-         */
 	longest_float_length = CHR_SVLEN(data.longest_float);
-	if (longest_float_length
-	    || (data.flags & SF_FL_BEFORE_EOL
-		&& (!(data.flags & SF_FL_BEFORE_MEOL)
-		    || (RExC_flags & RXf_PMf_MULTILINE)))) 
+
+        if (! ((SvCUR(data.longest_fixed)  /* ok to leave SvCUR */
+                   && data.offset_fixed == data.offset_float_min
+                   && SvCUR(data.longest_fixed) == SvCUR(data.longest_float)))
+            && S_setup_longest (aTHX_ pRExC_state,
+                                    data.longest_float,
+                                    &(r->float_utf8),
+                                    &(r->float_substr),
+                                    &(r->float_end_shift),
+                                    data.lookbehind_float,
+                                    data.offset_float_min,
+                                    data.minlen_float,
+                                    longest_float_length,
+                                    data.flags & SF_FL_BEFORE_EOL,
+                                    data.flags & SF_FL_BEFORE_MEOL))
         {
-            I32 t,ml;
-
-            /* See comments for join_exact for why REG_SEEN_EXACTF_SHARP_S */
-	    if ((RExC_seen & REG_SEEN_EXACTF_SHARP_S)
-		|| (SvCUR(data.longest_fixed)  /* ok to leave SvCUR */
-		    && data.offset_fixed == data.offset_float_min
-		    && SvCUR(data.longest_fixed) == SvCUR(data.longest_float)))
-		    goto remove_float;		/* As in (a)+. */
-
-            /* copy the information about the longest float from the reg_scan_data
-               over to the program. */
-	    if (SvUTF8(data.longest_float)) {
-		r->float_utf8 = data.longest_float;
-		r->float_substr = NULL;
-	    } else {
-		r->float_substr = data.longest_float;
-		r->float_utf8 = NULL;
-	    }
-	    /* float_end_shift is how many chars that must be matched that 
-	       follow this item. We calculate it ahead of time as once the
-	       lookbehind offset is added in we lose the ability to correctly
-	       calculate it.*/
-	    ml = data.minlen_float ? *(data.minlen_float) 
-	                           : (I32)longest_float_length;
-	    r->float_end_shift = ml - data.offset_float_min
-	        - longest_float_length + (SvTAIL(data.longest_float) != 0)
-	        + data.lookbehind_float;
 	    r->float_min_offset = data.offset_float_min - data.lookbehind_float;
 	    r->float_max_offset = data.offset_float_max;
 	    if (data.offset_float_max < I32_MAX) /* Don't offset infinity */
 	        r->float_max_offset -= data.lookbehind_float;
-	    
-	    t = (data.flags & SF_FL_BEFORE_EOL /* Can't have SEOL and MULTI */
-		       && (!(data.flags & SF_FL_BEFORE_MEOL)
-			   || (RExC_flags & RXf_PMf_MULTILINE)));
-	    fbm_compile(data.longest_float, t ? FBMcf_TAIL : 0);
 	}
 	else {
-	  remove_float:
 	    r->float_substr = r->float_utf8 = NULL;
 	    SvREFCNT_dec(data.longest_float);
 	    longest_float_length = 0;
 	}
 
-        /* Note that code very similar to this but for floating string 
-           is immediately above, changes may need to be made to both. 
-           Be careful. 
-         */
 	longest_fixed_length = CHR_SVLEN(data.longest_fixed);
 
-        /* See comments for join_exact for why REG_SEEN_EXACTF_SHARP_S */
-	if (! (RExC_seen & REG_SEEN_EXACTF_SHARP_S)
-	    && (longest_fixed_length
-	        || (data.flags & SF_FIX_BEFORE_EOL /* Cannot have SEOL and MULTI */
-		    && (!(data.flags & SF_FIX_BEFORE_MEOL)
-		        || (RExC_flags & RXf_PMf_MULTILINE)))) )
+        if (S_setup_longest (aTHX_ pRExC_state,
+                                data.longest_fixed,
+                                &(r->anchored_utf8),
+                                &(r->anchored_substr),
+                                &(r->anchored_end_shift),
+                                data.lookbehind_fixed,
+                                data.offset_fixed,
+                                data.minlen_fixed,
+                                longest_fixed_length,
+                                data.flags & SF_FIX_BEFORE_EOL,
+                                data.flags & SF_FIX_BEFORE_MEOL))
         {
-            I32 t,ml;
-
-            /* copy the information about the longest fixed 
-               from the reg_scan_data over to the program. */
-	    if (SvUTF8(data.longest_fixed)) {
-		r->anchored_utf8 = data.longest_fixed;
-		r->anchored_substr = NULL;
-	    } else {
-		r->anchored_substr = data.longest_fixed;
-		r->anchored_utf8 = NULL;
-	    }
-	    /* fixed_end_shift is how many chars that must be matched that 
-	       follow this item. We calculate it ahead of time as once the
-	       lookbehind offset is added in we lose the ability to correctly
-	       calculate it.*/
-            ml = data.minlen_fixed ? *(data.minlen_fixed) 
-                                   : (I32)longest_fixed_length;
-            r->anchored_end_shift = ml - data.offset_fixed
-	        - longest_fixed_length + (SvTAIL(data.longest_fixed) != 0)
-	        + data.lookbehind_fixed;
 	    r->anchored_offset = data.offset_fixed - data.lookbehind_fixed;
-
-	    t = (data.flags & SF_FIX_BEFORE_EOL /* Can't have SEOL and MULTI */
-		 && (!(data.flags & SF_FIX_BEFORE_MEOL)
-		     || (RExC_flags & RXf_PMf_MULTILINE)));
-	    fbm_compile(data.longest_fixed, t ? FBMcf_TAIL : 0);
 	}
 	else {
 	    r->anchored_substr = r->anchored_utf8 = NULL;
 	    SvREFCNT_dec(data.longest_fixed);
 	    longest_fixed_length = 0;
 	}
+
 	if (ri->regstclass
 	    && (OP(ri->regstclass) == REG_ANY || OP(ri->regstclass) == SANY))
 	    ri->regstclass = NULL;
@@ -8303,11 +8299,11 @@ S_reg(pTHX_ RExC_state_t *pRExC_state, I32 paren, I32 *flagp,U32 depth)
     /* paren: Parenthesized? 0=top, 1=(, inside: changed to letter. */
 {
     dVAR;
-    register regnode *ret;		/* Will be the head of the group. */
-    register regnode *br;
-    register regnode *lastbr;
-    register regnode *ender = NULL;
-    register I32 parno = 0;
+    regnode *ret;		/* Will be the head of the group. */
+    regnode *br;
+    regnode *lastbr;
+    regnode *ender = NULL;
+    I32 parno = 0;
     I32 flags;
     U32 oregflags = RExC_flags;
     bool have_branch = 0;
@@ -9313,9 +9309,9 @@ STATIC regnode *
 S_regbranch(pTHX_ RExC_state_t *pRExC_state, I32 *flagp, I32 first, U32 depth)
 {
     dVAR;
-    register regnode *ret;
-    register regnode *chain = NULL;
-    register regnode *latest;
+    regnode *ret;
+    regnode *chain = NULL;
+    regnode *latest;
     I32 flags = 0, c = 0;
     GET_RE_DEBUG_FLAGS_DECL;
 
@@ -9386,9 +9382,9 @@ STATIC regnode *
 S_regpiece(pTHX_ RExC_state_t *pRExC_state, I32 *flagp, U32 depth)
 {
     dVAR;
-    register regnode *ret;
-    register char op;
-    register char *next;
+    regnode *ret;
+    char op;
+    char *next;
     I32 flags;
     const char * const origparse = RExC_parse;
     I32 min;
@@ -9577,20 +9573,22 @@ S_regpiece(pTHX_ RExC_state_t *pRExC_state, I32 *flagp, U32 depth)
     return(ret);
 }
 
-/* grok_bslash_N(pRExC_state, regnode** node_p, UV *valuep, UV depth, bool in_charclass)
+STATIC bool
+S_grok_bslash_N(pTHX_ RExC_state_t *pRExC_state, regnode** node_p, UV *valuep, I32 *flagp, U32 depth, bool in_char_class)
+{
    
-   This is expected to be called by a parser routine that has recognized '\N'
+ /* This is expected to be called by a parser routine that has recognized '\N'
    and needs to handle the rest. RExC_parse is expected to point at the first
    char following the N at the time of the call.  On successful return,
    RExC_parse has been updated to point to just after the sequence identified
-   by this routine.
+   by this routine, and <*flagp> has been updated.
 
-   The \N may be inside (indicated by the boolean <in_charclass>) or outside a
+   The \N may be inside (indicated by the boolean <in_char_class>) or outside a
    character class.
 
    \N may begin either a named sequence, or if outside a character class, mean
    to match a non-newline.  For non single-quoted regexes, the tokenizer has
-   attempted to decide which, and in the case of a named sequence converted it
+   attempted to decide which, and in the case of a named sequence, converted it
    into one of the forms: \N{} (if the sequence is null), or \N{U+c1.c2...},
    where c1... are the characters in the sequence.  For single-quoted regexes,
    the tokenizer passes the \N sequence through unchanged; this code will not
@@ -9622,9 +9620,6 @@ S_regpiece(pTHX_ RExC_state_t *pRExC_state, I32 *flagp, U32 depth)
    null.
  */
 
-STATIC bool
-S_grok_bslash_N(pTHX_ RExC_state_t *pRExC_state, regnode** node_p, UV *valuep, I32 *flagp, U32 depth, bool in_char_class)
-{
     char * endbrace;    /* '}' following the name */
     char* p;
     char *endchar;	/* Points to '.' or '}' ending cur char in the input
@@ -9774,6 +9769,7 @@ S_grok_bslash_N(pTHX_ RExC_state_t *pRExC_state, regnode** node_p, UV *valuep, I
 	SV * substitute_parse = newSVpvn_flags("?:", 2, SVf_UTF8|SVs_TEMP);
 	STRLEN len;
 	char *orig_end = RExC_end;
+        I32 flags;
 
 	while (RExC_parse < endbrace) {
 
@@ -9799,7 +9795,8 @@ S_grok_bslash_N(pTHX_ RExC_state_t *pRExC_state, regnode** node_p, UV *valuep, I
 	/* The values are Unicode, and therefore not subject to recoding */
 	RExC_override_recoding = 1;
 
-	*node_p = reg(pRExC_state, 1, flagp, depth+1);
+	*node_p = reg(pRExC_state, 1, &flags, depth+1);
+	*flagp |= flags&(HASWIDTH|SPSTART|SIMPLE|POSTPONED);
 
 	RExC_parse = endbrace;
 	RExC_end = orig_end;
@@ -9866,15 +9863,23 @@ S_compute_EXACTish(pTHX_ RExC_state_t *pRExC_state)
 }
 
 PERL_STATIC_INLINE void
-S_alloc_maybe_populate_EXACT(pTHX_ RExC_state_t *pRExC_state, regnode *node, STRLEN len, UV code_point)
+S_alloc_maybe_populate_EXACT(pTHX_ RExC_state_t *pRExC_state, regnode *node, I32* flagp, STRLEN len, UV code_point)
 {
-    /* This knows the details about sizing an EXACTish node, and potentially
-     * populating it with a single character.  If <len> is non-zero, it assumes
-     * that the node has already been populated, and just does the sizing,
-     * ignoring <code_point>.  Otherwise it looks at <code_point> and
-     * calculates what <len> should be.  In pass 1, it sizes the node
-     * appropriately.  In pass 2, it additionally will populate the node's
-     * STRING with <code_point>, if <len> is 0.
+    /* This knows the details about sizing an EXACTish node, setting flags for
+     * it (by setting <*flagp>, and potentially populating it with a single
+     * character.
+     *
+     * If <len> is non-zero, this function assumes that the node has already
+     * been populated, and just does the sizing.  In this case <code_point>
+     * should be the final code point that has already been placed into the
+     * node.  This value will be ignored except that under some circumstances
+     * <*flagp> is set based on it.
+     *
+     * If <len is zero, the function assumes that the node is to contain only
+     * the single character given by <code_point> and calculates what <len>
+     * should be.  In pass 1, it sizes the node appropriately.  In pass 2, it
+     * additionally will populate the node's STRING with <code_point>, if <len>
+     * is 0.  In both cases <*flagp> is appropriately set
      *
      * It knows that under FOLD, UTF characters and the Latin Sharp S must be
      * folded (the latter only when the rules indicate it can match 'ss') */
@@ -9919,6 +9924,10 @@ S_alloc_maybe_populate_EXACT(pTHX_ RExC_state_t *pRExC_state, regnode *node, STR
             Copy((char *) character, STRING(node), len, char);
         }
     }
+
+    *flagp |= HASWIDTH;
+    if (len == 1 && UNI_IS_INVARIANT(code_point))
+        *flagp |= SIMPLE;
 }
 
 /*
@@ -10033,13 +10042,12 @@ tryagain:
     case '[':
     {
 	char * const oregcomp_parse = ++RExC_parse;
-        ret = regclass(pRExC_state,depth+1);
+        ret = regclass(pRExC_state, flagp,depth+1);
 	if (*RExC_parse != ']') {
 	    RExC_parse = oregcomp_parse;
 	    vFAIL("Unmatched [");
 	}
 	nextchar(pRExC_state);
-	*flagp |= HASWIDTH|SIMPLE;
         Set_Node_Length(ret, RExC_parse - oregcomp_parse + 1); /* MJD */
 	break;
     }
@@ -10250,7 +10258,7 @@ tryagain:
 		}
 		RExC_parse--;
 
-                ret = regclass(pRExC_state,depth+1);
+                ret = regclass(pRExC_state, flagp,depth+1);
 
 		RExC_end = oldregxend;
 		RExC_parse--;
@@ -10258,7 +10266,6 @@ tryagain:
 		Set_Node_Offset(ret, parse_start + 2);
 		Set_Node_Cur_Length(ret);
 		nextchar(pRExC_state);
-		*flagp |= HASWIDTH|SIMPLE;
 	    }
 	    break;
         case 'N': 
@@ -10421,9 +10428,9 @@ tryagain:
 	    RExC_parse++;
 
 	defchar: {
-	    register STRLEN len = 0;
+	    STRLEN len = 0;
 	    UV ender;
-	    register char *p;
+	    char *p;
 	    char *s;
 #define MAX_NODE_STRING_SIZE 127
 	    char foldbuf[MAX_NODE_STRING_SIZE+UTF8_MAXBYTES_CASE];
@@ -10533,6 +10540,9 @@ tryagain:
                             goto loopdone;
                         }
                         p = RExC_parse;
+                        if (ender > 0xff) {
+                            REQUIRE_UTF8;
+                        }
                         break;
 		    case 'r':
 			ender = '\r';
@@ -10932,6 +10942,17 @@ tryagain:
 
 	loopdone:   /* Jumped to when encounters something that shouldn't be in
 		       the node */
+
+            /* I (khw) don't know if you can get here with zero length, but the
+             * old code handled this situation by creating a zero-length EXACT
+             * node.  Might as well be NOTHING instead */
+            if (len == 0) {
+                OP(ret) = NOTHING;
+            }
+            else{
+                alloc_maybe_populate_EXACT(pRExC_state, ret, flagp, len, ender);
+            }
+
 	    RExC_parse = p - 1;
             Set_Node_Cur_Length(ret); /* MJD */
 	    nextchar(pRExC_state);
@@ -10941,12 +10962,7 @@ tryagain:
 		if (iv < 0)
 		    vFAIL("Internal disaster");
 	    }
-	    if (len > 0)
-		*flagp |= HASWIDTH;
-	    if (len == 1 && UNI_IS_INVARIANT(ender))
-		*flagp |= SIMPLE;
 
-            alloc_maybe_populate_EXACT(pRExC_state, ret, len, 0);
 	} /* End of label 'defchar:' */
 	break;
     } /* End of giant switch on input character */
@@ -11313,14 +11329,14 @@ S_add_alternate(pTHX_ AV** alternate_ptr, U8* string, STRLEN len)
    above 255, a range list is used */
 
 STATIC regnode *
-S_regclass(pTHX_ RExC_state_t *pRExC_state, U32 depth)
+S_regclass(pTHX_ RExC_state_t *pRExC_state, I32 *flagp, U32 depth)
 {
     dVAR;
-    register UV nextvalue;
-    register UV prevvalue = OOB_UNICODE;
-    register IV range = 0;
+    UV nextvalue;
+    UV prevvalue = OOB_UNICODE;
+    IV range = 0;
     UV value = 0;
-    register regnode *ret;
+    regnode *ret;
     STRLEN numlen;
     IV namedclass = OOB_NAMEDCLASS;
     char *rangebegin = NULL;
@@ -11484,7 +11500,7 @@ parseit:
                     if this makes sense as it does change the behaviour
                     from earlier versions, OTOH that behaviour was broken
                     as well. */
-                    if (! grok_bslash_N(pRExC_state, NULL, &value, NULL, depth,
+                    if (! grok_bslash_N(pRExC_state, NULL, &value, flagp, depth,
                                       TRUE /* => charclass */))
                     {
                         goto parseit;
@@ -11990,8 +12006,8 @@ parseit:
 		    }
                     if (!SIZE_ONLY) {
                         cp_list = add_cp_to_invlist(cp_list, '-');
-                        element_count++;
                     }
+                    element_count++;
 		} else
 		    range = 1;	/* yeah, it's a range! */
 		continue;	/* but do it the next time */
@@ -12103,6 +12119,7 @@ parseit:
                     if (invert) {
                         op += NALNUM - ALNUM;
                     }
+                    *flagp |= HASWIDTH|SIMPLE;
                     break;
 
                 /* The second group doesn't depend of the charset modifiers.
@@ -12113,6 +12130,7 @@ parseit:
                 case ANYOF_HORIZWS:
                   is_horizws:
                     op = (invert) ? NHORIZWS : HORIZWS;
+                    *flagp |= HASWIDTH|SIMPLE;
                     break;
 
                 case ANYOF_NVERTWS:
@@ -12120,6 +12138,7 @@ parseit:
                     /* FALLTHROUGH */
                 case ANYOF_VERTWS:
                     op = (invert) ? NVERTWS : VERTWS;
+                    *flagp |= HASWIDTH|SIMPLE;
                     break;
 
                 case ANYOF_MAX:
@@ -12159,6 +12178,8 @@ parseit:
             if (invert) {
                 if (! LOC && value == '\n') {
                     op = REG_ANY; /* Optimize [^\n] */
+                    *flagp |= HASWIDTH|SIMPLE;
+                    RExC_naughty++;
                 }
             }
             else if (value < 256 || UTF) {
@@ -12172,6 +12193,7 @@ parseit:
             if (prevvalue == '0') {
                 if (value == '9') {
                     op = (invert) ? NDIGITA : DIGITA;
+                    *flagp |= HASWIDTH|SIMPLE;
                 }
             }
         }
@@ -12205,9 +12227,10 @@ parseit:
                 if (! SIZE_ONLY) {
                     FLAGS(ret) = arg;
                 }
+                *flagp |= HASWIDTH|SIMPLE;
             }
             else if (PL_regkind[op] == EXACT) {
-                alloc_maybe_populate_EXACT(pRExC_state, ret, 0, value);
+                alloc_maybe_populate_EXACT(pRExC_state, ret, flagp, 0, value);
             }
 
             RExC_parse = (char *) cur_parse;
@@ -12219,7 +12242,7 @@ parseit:
 
     if (SIZE_ONLY)
         return ret;
-    /****** !SIZE_ONLY AFTER HERE *********/
+    /****** !SIZE_ONLY (Pass 2) AFTER HERE *********/
 
     /* If folding, we calculate all characters that could fold to or from the
      * ones already on the list */
@@ -12675,6 +12698,7 @@ parseit:
              * it doesn't match anything.  (perluniprops.pod notes such
              * properties) */
             op = OPFAIL;
+            *flagp |= HASWIDTH|SIMPLE;
         }
         else if (start == end) {    /* The range is a single code point */
             if (! invlist_iternext(cp_list, &start, &end)
@@ -12740,12 +12764,16 @@ parseit:
         else if (start == 0) {
             if (end == UV_MAX) {
                 op = SANY;
+                *flagp |= HASWIDTH|SIMPLE;
+                RExC_naughty++;
             }
             else if (end == '\n' - 1
                     && invlist_iternext(cp_list, &start, &end)
                     && start == '\n' + 1 && end == UV_MAX)
             {
                 op = REG_ANY;
+                *flagp |= HASWIDTH|SIMPLE;
+                RExC_naughty++;
             }
         }
 
@@ -12758,7 +12786,7 @@ parseit:
             RExC_parse = (char *)cur_parse;
 
             if (PL_regkind[op] == EXACT) {
-                alloc_maybe_populate_EXACT(pRExC_state, ret, 0, value);
+                alloc_maybe_populate_EXACT(pRExC_state, ret, flagp, 0, value);
             }
 
             SvREFCNT_dec(listsv);
@@ -12899,6 +12927,8 @@ parseit:
 	RExC_rxi->data->data[n] = (void*)rv;
 	ARG_SET(ret, n);
     }
+
+    *flagp |= HASWIDTH|SIMPLE;
     return ret;
 }
 #undef HAS_NONLOCALE_RUNTIME_PROPERTY_DEFINITION
@@ -12992,7 +13022,7 @@ STATIC regnode *			/* Location. */
 S_reg_node(pTHX_ RExC_state_t *pRExC_state, U8 op)
 {
     dVAR;
-    register regnode *ptr;
+    regnode *ptr;
     regnode * const ret = RExC_emit;
     GET_RE_DEBUG_FLAGS_DECL;
 
@@ -13034,7 +13064,7 @@ STATIC regnode *			/* Location. */
 S_reganode(pTHX_ RExC_state_t *pRExC_state, U8 op, U32 arg)
 {
     dVAR;
-    register regnode *ptr;
+    regnode *ptr;
     regnode * const ret = RExC_emit;
     GET_RE_DEBUG_FLAGS_DECL;
 
@@ -13106,9 +13136,9 @@ STATIC void
 S_reginsert(pTHX_ RExC_state_t *pRExC_state, U8 op, regnode *opnd, U32 depth)
 {
     dVAR;
-    register regnode *src;
-    register regnode *dst;
-    register regnode *place;
+    regnode *src;
+    regnode *dst;
+    regnode *place;
     const int offset = regarglen[(U8)op];
     const int size = NODE_STEP_REGNODE + offset;
     GET_RE_DEBUG_FLAGS_DECL;
@@ -13194,7 +13224,7 @@ STATIC void
 S_regtail(pTHX_ RExC_state_t *pRExC_state, regnode *p, const regnode *val,U32 depth)
 {
     dVAR;
-    register regnode *scan;
+    regnode *scan;
     GET_RE_DEBUG_FLAGS_DECL;
 
     PERL_ARGS_ASSERT_REGTAIL;
@@ -13253,7 +13283,7 @@ STATIC U8
 S_regtail_study(pTHX_ RExC_state_t *pRExC_state, regnode *p, const regnode *val,U32 depth)
 {
     dVAR;
-    register regnode *scan;
+    regnode *scan;
     U8 exact = PSEUDO;
 #ifdef EXPERIMENTAL_INPLACESCAN
     I32 min = 0;
@@ -13494,7 +13524,7 @@ Perl_regprop(pTHX_ const regexp *prog, SV *sv, const regnode *o)
 {
 #ifdef DEBUGGING
     dVAR;
-    register int k;
+    int k;
 
     /* Should be synchronized with * ANYOF_ #xdefines in regcomp.h */
     static const char * const anyofs[] = {
@@ -14298,7 +14328,7 @@ regnode *
 Perl_regnext(pTHX_ register regnode *p)
 {
     dVAR;
-    register I32 offset;
+    I32 offset;
 
     if (!p)
 	return(NULL);
@@ -14457,8 +14487,8 @@ S_dumpuntil(pTHX_ const regexp *r, const regnode *start, const regnode *node,
 	    SV* sv, I32 indent, U32 depth)
 {
     dVAR;
-    register U8 op = PSEUDO;	/* Arbitrary non-END op. */
-    register const regnode *next;
+    U8 op = PSEUDO;	/* Arbitrary non-END op. */
+    const regnode *next;
     const regnode *optstart= NULL;
     
     RXi_GET_DECL(r,ri);
@@ -14509,9 +14539,9 @@ S_dumpuntil(pTHX_ const regexp *r, const regnode *start, const regnode *node,
 	if (PL_regkind[(U8)op] == BRANCHJ) {
 	    assert(next);
 	    {
-                register const regnode *nnode = (OP(next) == LONGJMP
-					     ? regnext((regnode *)next)
-					     : next);
+                const regnode *nnode = (OP(next) == LONGJMP
+                                       ? regnext((regnode *)next)
+                                       : next);
                 if (last && nnode > last)
                     nnode = last;
                 DUMPUNTIL(NEXTOPER(NEXTOPER(node)), nnode);

@@ -191,8 +191,9 @@ cpan/CGI/t/html.t			See if CGI.pm works
 cpan/CGI/t/http.t			See if CGI.pm works
 cpan/CGI/t/init.t			See if CGI.pm works
 cpan/CGI/t/init_test.txt		See if CGI.pm works
+cpan/CGI/t/multipart_init.t		See if CGI.pm works
 cpan/CGI/t/no_tabindex.t		See if CGI.pm works
-cpan/CGI/t/param_fetch.t			See if CGI pop menus work
+cpan/CGI/t/param_fetch.t		See if CGI pop menus work
 cpan/CGI/t/popup_menu.t			See if CGI pop menus work
 cpan/CGI/t/pretty.t			See if CGI.pm works
 cpan/CGI/t/push.t			See if CGI::Push works
@@ -1771,8 +1772,12 @@ cpan/Module-Load/t/to_load/Must/Be/Loaded.pm	Module::Load tests
 cpan/Module-Load/t/to_load/TestModule.pm	Module::Load tests
 cpan/Module-Load/t/to_load/ToBeLoaded		Module::Load tests
 cpan/Module-Metadata/lib/Module/Metadata.pm
+cpan/Module-Metadata/t/encoding.t
 cpan/Module-Metadata/t/lib/0_1/Foo.pm
 cpan/Module-Metadata/t/lib/0_2/Foo.pm
+cpan/Module-Metadata/t/lib/BOMTest/UTF16BE.pm
+cpan/Module-Metadata/t/lib/BOMTest/UTF16LE.pm
+cpan/Module-Metadata/t/lib/BOMTest/UTF8.pm
 cpan/Module-Metadata/t/lib/DistGen.pm
 cpan/Module-Metadata/t/lib/MBTest.pm
 cpan/Module-Metadata/t/lib/Tie/CPHash.pm
@@ -1818,6 +1823,10 @@ cpan/Module-Pluggable/t/18skipped_package.t		Module::Pluggable tests
 cpan/Module-Pluggable/t/19can_ok_clobber.t		Module::Pluggable tests
 cpan/Module-Pluggable/t/20dodgy_files.t			Module::Pluggable tests
 cpan/Module-Pluggable/t/21editor_junk.t			Module::Pluggable tests
+cpan/Module-Pluggable/t/22trigger.t			Module::Pluggable tests
+cpan/Module-Pluggable/t/23depth.t			Module::Pluggable tests
+cpan/Module-Pluggable/t/24local_inc_object.t		Module::Pluggable tests
+cpan/Module-Pluggable/t/24local_inc_package.t		Module::Pluggable tests
 cpan/Module-Pluggable/t/acme/Acme/MyTest/Plugin/Foo.pm	Module::Pluggable tests
 cpan/Module-Pluggable/t/lib/Acme/Foo-Bar.pm		Module::Pluggable tests
 cpan/Module-Pluggable/t/lib/Acme/MyTest/Plugin/Foo.pm	Module::Pluggable tests
@@ -1841,6 +1850,12 @@ cpan/Module-Pluggable/t/lib/MyTest/Plugin/Quux/Foo.pm	Module::Pluggable tests
 cpan/Module-Pluggable/t/lib/No/Middle.pm		Module::Pluggable tests
 cpan/Module-Pluggable/t/lib/OddTest/Plugin/Foo.pm	Module::Pluggable tests
 cpan/Module-Pluggable/t/lib/TA/C/A/I.pm			Module::Pluggable tests
+cpan/Module-Pluggable/t/lib/Text/Abbrev.pm		Module::Pluggable tests
+cpan/Module-Pluggable/t/lib/TriggerTest/Plugin/After.pm	Module::Pluggable tests
+cpan/Module-Pluggable/t/lib/TriggerTest/Plugin/CallbackAllow.pm	Module::Pluggable tests
+cpan/Module-Pluggable/t/lib/TriggerTest/Plugin/CallbackDeny.pm	Module::Pluggable tests
+cpan/Module-Pluggable/t/lib/TriggerTest/Plugin/Deny.pm	Module::Pluggable tests
+cpan/Module-Pluggable/t/lib/TriggerTest/Plugin/Error.pm	Module::Pluggable tests
 cpan/Module-Pluggable/t/lib/Zot/.Zork.pm		Module::Pluggable tests
 cpan/NEXT/lib/NEXT.pm		Pseudo-class NEXT for method redispatch
 cpan/NEXT/t/actual.t		NEXT
@@ -1947,7 +1962,7 @@ cpan/podlators/t/text.t				podlators test
 cpan/podlators/t/text-utf8.t			podlators test
 cpan/podlators/VERSION				podlators distribution version
 cpan/Pod-Parser/lib/Pod/Checker.pm		Pod-Parser - check POD documents for syntax errors
-cpan/Pod-Parser/lib/Pod/Find.pm			used by pod/splitpod
+cpan/Pod-Parser/lib/Pod/Find.pm			find POD documents in directory trees
 cpan/Pod-Parser/lib/Pod/InputObjects.pm		Pod-Parser - define objects for input streams
 cpan/Pod-Parser/lib/Pod/Parser.pm		Pod-Parser - define base class for parsing POD
 cpan/Pod-Parser/lib/Pod/ParseUtils.pm		Pod-Parser - pod utility functions
@@ -2086,6 +2101,10 @@ cpan/Pod-Simple/t/corpus/8859_7.pod			Pod::Simple test file
 cpan/Pod-Simple/t/corpus/8859_7.xml			Pod::Simple test file
 cpan/Pod-Simple/t/corpus/cp1256.txt			Pod::Simple test file
 cpan/Pod-Simple/t/corpus/cp1256.xml			Pod::Simple test file
+cpan/Pod-Simple/t/corpus/encwarn01.txt			Pod::Simple test file
+cpan/Pod-Simple/t/corpus/encwarn01.xml			Pod::Simple test file
+cpan/Pod-Simple/t/corpus/encwarn02.txt			Pod::Simple test file
+cpan/Pod-Simple/t/corpus/encwarn02.xml			Pod::Simple test file
 cpan/Pod-Simple/t/corpus/fet_cont.txt			Pod::Simple test file
 cpan/Pod-Simple/t/corpus/fet_cont.xml			Pod::Simple test file
 cpan/Pod-Simple/t/corpus/fet_dup.txt			Pod::Simple test file
@@ -2203,6 +2222,7 @@ cpan/Pod-Simple/t/xhtml01.t				Pod::Simple test file
 cpan/Pod-Simple/t/xhtml05.t				Pod::Simple test file
 cpan/Pod-Simple/t/xhtml10.t				Pod::Simple test file
 cpan/Pod-Simple/t/xhtml15.t				Pod::Simple test file
+cpan/Pod-Simple/t/xhtml20.t				Pod::Simple test file
 cpan/Pod-Simple/t/x_nixer.t				Pod::Simple test file
 cpan/Socket/Makefile.PL			Socket extension makefile writer
 cpan/Socket/Socket.pm			Socket extension Perl module
@@ -2226,6 +2246,7 @@ cpan/Sys-Syslog/Syslog.pm		Sys::Syslog extension Perl module
 cpan/Sys-Syslog/Syslog.xs		Sys::Syslog extension external subroutines
 cpan/Sys-Syslog/t/00-load.t		test for Sys::Syslog
 cpan/Sys-Syslog/t/constants.t		test for Sys::Syslog
+cpan/Sys-Syslog/t/facilities-routing.t	test for Sys::Syslog
 cpan/Sys-Syslog/t/syslog.t		See if Sys::Syslog works
 cpan/Sys-Syslog/win32/compile.pl	Sys::Syslog extension Win32 related file
 cpan/Sys-Syslog/win32/PerlLog_dll.uu	Sys::Syslog extension Win32 related file
@@ -2632,7 +2653,9 @@ cpan/Text-Tabs/t/Jacobson.t		See if Text::Tabs is working
 cpan/Text-Tabs/t/Jochen.t		See if Text::Tabs is working
 cpan/Text-Tabs/t/sep2.t			See if Text::Tabs is working
 cpan/Text-Tabs/t/sep.t			See if Text::Tabs is working
+cpan/Text-Tabs/t/Tabs-ElCid.t		See if Text::Tabs works
 cpan/Text-Tabs/t/tabs.t			See if Text::Tabs works
+cpan/Text-Tabs/t/Wrap-JLB.t		See if Text::Wrap::wrap works
 cpan/Text-Tabs/t/wrap_separator2.t	See if Text::Wrap::wrap works
 cpan/Text-Tabs/t/wrap.t			See if Text::Wrap::wrap works
 cpan/Tie-RefHash/lib/Tie/RefHash.pm		Base class for tied hashes with references as keys
@@ -2932,6 +2955,7 @@ cpan/Win32API-File/typemap	Win32API::File extension interface types
 cpan/Win32/Changes			Changes for Win32 extension module
 cpan/Win32/longpath.inc			Win32 extension long path support
 cpan/Win32/Makefile.PL			Win32 extension makefile writer
+cpan/Win32/t/CodePage.t			See if Win32 extension works
 cpan/Win32/t/CreateFile.t		See if Win32 extension works
 cpan/Win32/t/ExpandEnvironmentStrings.t	See if Win32 extension works
 cpan/Win32/t/GetCurrentThreadId.t	See if Win32 extension works
@@ -3857,7 +3881,6 @@ ext/POSIX/hints/next_3.pl	Hint for POSIX for named architecture
 ext/POSIX/hints/openbsd.pl	Hint for POSIX for named architecture
 ext/POSIX/hints/sunos_4.pl	Hint for POSIX for named architecture
 ext/POSIX/hints/svr4.pl		Hint for POSIX for named architecture
-ext/POSIX/hints/uts.pl		Hint for POSIX for named architecture
 ext/POSIX/lib/POSIX.pm		POSIX extension Perl module
 ext/POSIX/lib/POSIX.pod		POSIX extension documentation
 ext/POSIX/Makefile.PL		POSIX extension makefile writer
@@ -4164,7 +4187,6 @@ hints/unicosmk.sh		Hints for named architecture
 hints/unicos.sh			Hints for named architecture
 hints/unisysdynix.sh		Hints for named architecture
 hints/utekv.sh			Hints for named architecture
-hints/uts.sh			Hints for named architecture
 hints/uwin.sh			Hints for named architecture
 hints/vmesa.sh			Hints for named architecture
 hints/vos.sh			Hints for named architecture
@@ -4644,6 +4666,7 @@ pod/perl5161delta.pod		Perl changes in version 5.16.1
 pod/perl5170delta.pod		Perl changes in version 5.17.0
 pod/perl5171delta.pod		Perl changes in version 5.17.1
 pod/perl5172delta.pod		Perl changes in version 5.17.2
+pod/perl5173delta.pod		Perl changes in version 5.17.3
 pod/perl561delta.pod		Perl changes in version 5.6.1
 pod/perl56delta.pod		Perl changes in version 5.6
 pod/perl581delta.pod		Perl changes in version 5.8.1
@@ -4863,7 +4886,6 @@ README.solaris			Perl notes for Solaris
 README.symbian			Perl notes for Symbian
 README.tru64			Perl notes for Tru64
 README.tw			Perl for Traditional Chinese (in Big5)
-README.uts			Perl notes for UTS
 README.vmesa			Perl notes for VM/ESA
 README.vms			Notes about installing the VMS port
 README.vos			Perl notes for Stratus VOS
@@ -5560,8 +5582,6 @@ utils/shasum.PL			filter for computing SHA digests (analogous to md5sum)
 utils/splain.PL			Stand-alone version of diagnostics.pm
 utils/xsubpp.PL			External subroutine preprocessor
 utils/zipdetails.PL			display the internal structure of zip files
-uts/sprintf_wrap.c		sprintf wrapper for UTS
-uts/strtol_wrap.c		strtol wrapper for UTS
 vmesa/Makefile			VM/ESA Makefile
 vmesa/vmesa.c			VM/ESA-specific C code for Perl core
 vmesa/vmesaish.h		VM/ESA-specific C header for Perl core

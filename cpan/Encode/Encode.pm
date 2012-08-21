@@ -1,10 +1,10 @@
 #
-# $Id: Encode.pm,v 2.45 2012/08/05 23:08:49 dankogai Exp dankogai $
+# $Id: Encode.pm,v 2.47 2012/08/15 05:36:16 dankogai Exp dankogai $
 #
 package Encode;
 use strict;
 use warnings;
-our $VERSION = sprintf "%d.%02d", q$Revision: 2.45 $ =~ /(\d+)/g;
+our $VERSION = sprintf "%d.%02d", q$Revision: 2.47 $ =~ /(\d+)/g;
 use constant DEBUG => !!$ENV{PERL_ENCODE_DEBUG};
 use XSLoader ();
 XSLoader::load( __PACKAGE__, $VERSION );
@@ -61,9 +61,8 @@ eval {
 };
 
 sub encodings {
-    #my $class = shift;
     my %enc;
-    if ( @_ and $_[0] eq ":all" ) {
+    if ( @_ and $_[1] eq ":all" ) {
         %enc = ( %Encoding, %ExtModule );
     }
     else {
@@ -1011,7 +1010,7 @@ the Perl Unicode Mailing List L<http://lists.perl.org/list/perl-unicode.html>
 =head1 MAINTAINER
 
 This project was originated by the late Nick Ing-Simmons and later
-maintained by Dan Kogai I<< <dankogai@dan.co.jp> >>.  See AUTHORS
+maintained by Dan Kogai I<< <dankogai@cpan.org> >>.  See AUTHORS
 for a full list of people involved.  For any questions, send mail to
 I<< <perl-unicode@perl.org> >> so that we can all share.
 
@@ -1021,7 +1020,7 @@ who submitted code to the project.
 
 =head1 COPYRIGHT
 
-Copyright 2002-2011 Dan Kogai I<< <dankogai@dan.co.jp> >>.
+Copyright 2002-2012 Dan Kogai I<< <dankogai@cpan.org> >>.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

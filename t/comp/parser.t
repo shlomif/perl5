@@ -3,7 +3,7 @@
 # Checks if the parser behaves correctly in edge cases
 # (including weird syntax errors)
 
-print "1..138\n";
+print "1..141\n";
 
 sub failed {
     my ($got, $expected, $name) = @_;
@@ -396,6 +396,28 @@ $_
 .
 write
 }).*/;
+
+eval '
+"${;
+
+=pod
+
+=cut
+
+}";
+';
+is $@, "", 'pod inside string in string eval';
+"${;
+
+=pod
+
+=cut
+
+}";
+print "ok ", ++$test, " - pod inside string outside of string eval\n";
+
+sub 'Hello'_he_said (_);
+is prototype "Hello::_he_said", '_', 'initial tick in sub declaration';
 
 # Add new tests HERE (above this line)
 

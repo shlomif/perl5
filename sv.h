@@ -412,16 +412,27 @@ perform the upgrade if necessary.  See C<svtype>.
 /* pad name vars only */
 #define SVpad_STATE	0x80000000  /* pad name is a "state" var */
 
+/* MSVC6 generates "error C2099: initializer is not a constant" when
+ * initializing bodies_by_type in sv.c. Workaround the compiler bug by
+ * using an anonymous union, but only for MSVC6 since that isn't C89.
+ */
+#if defined(_MSC_VER) && _MSC_VER < 1300
+# define _XPV_CUR_U_NAME
+# define xpv_cur	xpvcuru_cur
+# define xpv_fmdepth	xpvcuru_fmdepth
+#else
+# define _XPV_CUR_U_NAME xpv_cur_u
+# define xpv_cur	xpv_cur_u.xpvcuru_cur
+# define xpv_fmdepth	xpv_cur_u.xpvcuru_fmdepth
+#endif
 #define _XPV_HEAD							\
     HV*		xmg_stash;	/* class package */			\
     union _xmgu	xmg_u;							\
     union {								\
 	STRLEN	xpvcuru_cur;	/* length of svu_pv as a C string */    \
 	I32	xpvcuru_fmdepth;					\
-    }		xpv_cur_u;						\
+    }		_XPV_CUR_U_NAME;					\
     STRLEN	xpv_len 	/* allocated size */
-
-#define xpv_cur	xpv_cur_u.xpvcuru_cur
 
 union _xnvu {
     NV	    xnv_nv;		/* numeric value, if any */
@@ -1461,12 +1472,12 @@ attention to precisely which outputs are influenced by which inputs.
 /*
 =for apidoc Am|char*|SvPV_force|SV* sv|STRLEN len
 Like C<SvPV> but will force the SV into containing a string (C<SvPOK>), and
-only a (C<SvPOK_only>), by hook or by crook.  You want force if you are
+only a string (C<SvPOK_only>), by hook or by crook.  You want force if you are
 going to update the C<SvPVX> directly.  Processes get magic.
 
 =for apidoc Am|char*|SvPV_force_nomg|SV* sv|STRLEN len
 Like C<SvPV> but will force the SV into containing a string (C<SvPOK>), and
-only a (C<SvPOK_only>), by hook or by crook.  You want force if you are
+only a string (C<SvPOK_only>), by hook or by crook.  You want force if you are
 going to update the C<SvPVX> directly.  Doesn't process get magic.
 
 =for apidoc Am|char*|SvPV|SV* sv|STRLEN len

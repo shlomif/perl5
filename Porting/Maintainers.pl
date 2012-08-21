@@ -287,7 +287,7 @@ use File::Glob qw(:case);
 
     'B::Debug' => {
         'MAINTAINER'   => 'rurban',
-        'DISTRIBUTION' => 'RURBAN/B-Debug-1.17.tar.gz',
+        'DISTRIBUTION' => 'RURBAN/B-Debug-1.18.tar.gz',
         'FILES'        => q[cpan/B-Debug],
         'EXCLUDED'     => ['t/pod.t'],
         'UPSTREAM'     => 'cpan',
@@ -342,12 +342,10 @@ use File::Glob qw(:case);
 
     'CGI' => {
         'MAINTAINER'   => 'lstein',
-        'DISTRIBUTION' => 'MARKSTOS/CGI.pm-3.59.tar.gz',
+        'DISTRIBUTION' => 'MARKSTOS/CGI.pm-3.60.tar.gz',
         'FILES'        => q[cpan/CGI],
         'EXCLUDED'     => [
-            qr{^t/lib/Test},
-            qw( cgi-lib_porting.html
-                cgi_docs.html
+            qw( cgi_docs.html
                 examples/WORLD_WRITABLE/18.157.1.253.sav
                 t/gen-tests/gen-start-end-tags.pl
                 t/fast.t
@@ -412,6 +410,7 @@ use File::Glob qw(:case);
             qr{^t/CPAN/authors/},
             qw( lib/CPAN/Admin.pm
                 Makefile.PL
+                scripts/cpan-mirrors
                 SlayMakefile
                 t/00signature.t
                 t/04clean_load.t
@@ -423,6 +422,7 @@ use File::Glob qw(:case);
                 t/31sessions.t
                 t/41distribution.t
                 t/42distroprefs.t
+                t/44cpanmeta.t
                 t/43distroprefspref.t
                 t/50pod.t
                 t/51pod.t
@@ -435,8 +435,12 @@ use File::Glob qw(:case);
                 t/CPAN/TestPatch.txt
                 t/CPAN/modules/02packages.details.txt
                 t/CPAN/modules/03modlist.data
+                t/data/META-dynamic.json
                 t/data/META-dynamic.yml
+                t/data/META-static.json
                 t/data/META-static.yml
+                t/data/MYMETA.json
+                t/data/MYMETA.yml
                 t/local_utils.pm
                 t/perlcriticrc
                 t/yaml_code.yml
@@ -622,7 +626,7 @@ use File::Glob qw(:case);
 
     'Encode' => {
         'MAINTAINER'   => 'dankogai',
-        'DISTRIBUTION' => 'DANKOGAI/Encode-2.45.tar.gz',
+        'DISTRIBUTION' => 'DANKOGAI/Encode-2.47.tar.gz',
         'FILES'        => q[cpan/Encode],
         'UPSTREAM'     => 'cpan',
     },
@@ -761,7 +765,7 @@ use File::Glob qw(:case);
 
     'perlfaq' => {
         'MAINTAINER'   => 'perlfaq',
-        'DISTRIBUTION' => 'LLAP/perlfaq-5.0150040.tar.gz',
+        'DISTRIBUTION' => 'LLAP/perlfaq-5.0150041.tar.gz',
         'FILES'        => q[cpan/perlfaq],
         'EXCLUDED'     => [
             qw( t/release-pod-syntax.t
@@ -943,7 +947,6 @@ use File::Glob qw(:case);
                 t/gol-compat.t
                 ),
         ],
-        'MAP'      => { '' => 'cpan/Getopt-Long/' },
         'UPSTREAM' => 'cpan',
     },
 
@@ -1243,7 +1246,7 @@ use File::Glob qw(:case);
 
     'Module::Build' => {
         'MAINTAINER'   => 'kwilliams',
-        'DISTRIBUTION' => 'LEONT/Module-Build-0.4002.tar.gz',
+        'DISTRIBUTION' => 'LEONT/Module-Build-0.4003.tar.gz',
         'FILES'        => q[cpan/Module-Build],
         'EXCLUDED'     => [
             qw( t/par.t
@@ -1258,7 +1261,7 @@ use File::Glob qw(:case);
 
     'Module::CoreList' => {
         'MAINTAINER'   => 'bingos',
-        'DISTRIBUTION' => 'BINGOS/Module-CoreList-2.69.tar.gz',
+        'DISTRIBUTION' => 'BINGOS/Module-CoreList-2.71.tar.gz',
         'FILES'        => q[dist/Module-CoreList],
         'UPSTREAM'     => 'blead',
     },
@@ -1272,7 +1275,7 @@ use File::Glob qw(:case);
 
     'Module::Load::Conditional' => {
         'MAINTAINER'   => 'kane',
-        'DISTRIBUTION' => 'BINGOS/Module-Load-Conditional-0.52.tar.gz',
+        'DISTRIBUTION' => 'BINGOS/Module-Load-Conditional-0.54.tar.gz',
         'FILES'        => q[cpan/Module-Load-Conditional],
         'UPSTREAM'     => 'cpan',
     },
@@ -1286,7 +1289,7 @@ use File::Glob qw(:case);
 
     'Module::Metadata' => {
         'MAINTAINER'   => 'dagolden',
-        'DISTRIBUTION' => 'VPIT/Module-Metadata-1.000010.tar.gz',
+        'DISTRIBUTION' => 'APEIRON/Module-Metadata-1.000011.tar.gz',
         'FILES'        => q[cpan/Module-Metadata],
         'EXCLUDED'     => [
             qr{^maint},
@@ -1297,7 +1300,7 @@ use File::Glob qw(:case);
 
     'Module::Pluggable' => {
         'MAINTAINER'   => 'simonw',
-        'DISTRIBUTION' => 'SIMONW/Module-Pluggable-4.0.tar.gz',
+        'DISTRIBUTION' => 'SIMONW/Module-Pluggable-4.3.tar.gz',
         'FILES'        => q[cpan/Module-Pluggable],
         'UPSTREAM'     => 'cpan',
         'CUSTOMIZED'   => ['Makefile.PL'],
@@ -1540,7 +1543,7 @@ use File::Glob qw(:case);
 
     'Pod::Simple' => {
         'MAINTAINER'   => 'arandal',
-        'DISTRIBUTION' => 'DWHEELER/Pod-Simple-3.20.tar.gz',
+        'DISTRIBUTION' => 'DWHEELER/Pod-Simple-3.23.tar.gz',
         'FILES'        => q[cpan/Pod-Simple],
         'UPSTREAM'     => 'cpan',
     },
@@ -1633,7 +1636,7 @@ use File::Glob qw(:case);
 
     'Socket' => {
         'MAINTAINER'   => 'pevans',
-        'DISTRIBUTION' => 'PEVANS/Socket-2.002.tar.gz',
+        'DISTRIBUTION' => 'PEVANS/Socket-2.004.tar.gz',
         'FILES'        => q[cpan/Socket],
         'UPSTREAM'     => 'cpan',
     },
@@ -1654,7 +1657,7 @@ use File::Glob qw(:case);
 
     'Sys::Syslog' => {
         'MAINTAINER'   => 'saper',
-        'DISTRIBUTION' => 'SAPER/Sys-Syslog-0.29.tar.gz',
+        'DISTRIBUTION' => 'SAPER/Sys-Syslog-0.31.tar.gz',
         'FILES'        => q[cpan/Sys-Syslog],
         'EXCLUDED'     => [
             qr{^eg/},
@@ -1665,11 +1668,9 @@ use File::Glob qw(:case);
                 t/podspell.t
                 t/portfs.t
                 win32/PerlLog.RES
-                win32/PerlLog_RES.uu
                 ),
         ],
         'UPSTREAM'   => 'cpan',
-        'CUSTOMIZED' => ['t/syslog.t'],
     },
 
     'Term::ANSIColor' => {
@@ -1738,9 +1739,61 @@ use File::Glob qw(:case);
                 t/lib/if.pm
                 ),
         ],
+        'MAP'        => {
+            ''                    => 'cpan/Test-Harness/',
+            't/compat/env.opts.t' => 'cpan/Test-Harness/t/compat/env_opts.t'
+        },
         'UPSTREAM'   => 'cpan',
         'CUSTOMIZED' => [
-            qw( t/source.t
+            qw( lib/App/Prove.pm
+                lib/App/Prove/State.pm
+                lib/App/Prove/State/Result.pm
+                lib/App/Prove/State/Result/Test.pm
+                lib/TAP/Base.pm
+                lib/TAP/Formatter/Base.pm
+                lib/TAP/Formatter/Color.pm
+                lib/TAP/Formatter/Console.pm
+                lib/TAP/Formatter/Console/ParallelSession.pm
+                lib/TAP/Formatter/Console/Session.pm
+                lib/TAP/Formatter/File.pm
+                lib/TAP/Formatter/File/Session.pm
+                lib/TAP/Formatter/Session.pm
+                lib/TAP/Harness.pm
+                lib/TAP/Object.pm
+                lib/TAP/Parser.pm
+                lib/TAP/Parser/Aggregator.pm
+                lib/TAP/Parser/Grammar.pm
+                lib/TAP/Parser/Iterator.pm
+                lib/TAP/Parser/Iterator/Array.pm
+                lib/TAP/Parser/Iterator/Process.pm
+                lib/TAP/Parser/Iterator/Stream.pm
+                lib/TAP/Parser/IteratorFactory.pm
+                lib/TAP/Parser/Multiplexer.pm
+                lib/TAP/Parser/Result.pm
+                lib/TAP/Parser/Result/Bailout.pm
+                lib/TAP/Parser/Result/Comment.pm
+                lib/TAP/Parser/Result/Plan.pm
+                lib/TAP/Parser/Result/Pragma.pm
+                lib/TAP/Parser/Result/Test.pm
+                lib/TAP/Parser/Result/Unknown.pm
+                lib/TAP/Parser/Result/Version.pm
+                lib/TAP/Parser/Result/YAML.pm
+                lib/TAP/Parser/ResultFactory.pm
+                lib/TAP/Parser/Scheduler.pm
+                lib/TAP/Parser/Scheduler/Job.pm
+                lib/TAP/Parser/Scheduler/Spinner.pm
+                lib/TAP/Parser/Source.pm
+                lib/TAP/Parser/SourceHandler.pm
+                lib/TAP/Parser/SourceHandler/Executable.pm
+                lib/TAP/Parser/SourceHandler/File.pm
+                lib/TAP/Parser/SourceHandler/Handle.pm
+                lib/TAP/Parser/SourceHandler/Perl.pm
+                lib/TAP/Parser/SourceHandler/RawTAP.pm
+                lib/TAP/Parser/Utils.pm
+                lib/TAP/Parser/YAMLish/Reader.pm
+                lib/TAP/Parser/YAMLish/Writer.pm
+                lib/Test/Harness.pm
+                t/source.t
                 ),
         ],
     },
@@ -1780,6 +1833,18 @@ use File::Glob qw(:case);
                 t/99_pmv.t
                 ),
         ],
+        'CUSTOMIZED'   => [
+            qw( t/01_compile.t
+                t/02_extbrk.t
+                t/03_extcbk.t
+                t/04_extdel.t
+                t/05_extmul.t
+                t/06_extqlk.t
+                t/07_exttag.t
+                t/08_extvar.t
+                t/09_gentag.t
+                ),
+        ],
         'UPSTREAM' => 'cpan',
     },
 
@@ -1814,15 +1879,18 @@ use File::Glob qw(:case);
 
     'Text-Tabs+Wrap' => {
         'MAINTAINER'   => 'muir',
-        'DISTRIBUTION' => 'MUIR/modules/Text-Tabs+Wrap-2009.0305.tar.gz',
+        'DISTRIBUTION' => 'MUIR/modules/Text-Tabs+Wrap-2012.0818.tar.gz',
         'FILES'        => q[cpan/Text-Tabs],
-        'EXCLUDED'   => ['t/dnsparks.t'],    # see af6492bf9e
-        'UPSTREAM'   => 'cpan',
-        'CUSTOMIZED' => [
-            qw( t/fill.t
-                t/tabs.t
-                ),
+        'EXCLUDED'   => [
+            qr/^lib\.old/,
+            't/dnsparks.t',    # see af6492bf9e
         ],
+        'MAP'          => {
+            ''                        => 'cpan/Text-Tabs/',
+            'lib.modern/Text/Tabs.pm' => 'cpan/Text-Tabs/lib/Text/Tabs.pm',
+            'lib.modern/Text/Wrap.pm' => 'cpan/Text-Tabs/lib/Text/Wrap.pm',
+        },
+        'UPSTREAM'   => 'cpan',
     },
 
     'Thread::Queue' => {
@@ -2030,7 +2098,7 @@ use File::Glob qw(:case);
 
     'Win32' => {
         'MAINTAINER'   => 'jand',
-        'DISTRIBUTION' => "JDB/Win32-0.44.tar.gz",
+        'DISTRIBUTION' => "JDB/Win32-0.45.tar.gz",
         'FILES'        => q[cpan/Win32],
         'UPSTREAM'     => 'cpan',
     },

@@ -13367,10 +13367,11 @@ perl_clone_using(PerlInterpreter *proto_perl, UV flags,
     PL_utf8_X_begin	= sv_dup_inc(proto_perl->Iutf8_X_begin, param);
     PL_utf8_X_extend	= sv_dup_inc(proto_perl->Iutf8_X_extend, param);
     PL_utf8_X_prepend	= sv_dup_inc(proto_perl->Iutf8_X_prepend, param);
-    PL_utf8_X_non_hangul	= sv_dup_inc(proto_perl->Iutf8_X_non_hangul, param);
+    PL_utf8_X_special_begin	= sv_dup_inc(proto_perl->Iutf8_X_special_begin, param);
     PL_utf8_X_L	= sv_dup_inc(proto_perl->Iutf8_X_L, param);
-    PL_utf8_X_LV	= sv_dup_inc(proto_perl->Iutf8_X_LV, param);
+    /*not currently used: PL_utf8_X_LV	= sv_dup_inc(proto_perl->Iutf8_X_LV, param);*/
     PL_utf8_X_LVT	= sv_dup_inc(proto_perl->Iutf8_X_LVT, param);
+    PL_utf8_X_RI	= sv_dup_inc(proto_perl->Iutf8_X_RI, param);
     PL_utf8_X_T	= sv_dup_inc(proto_perl->Iutf8_X_T, param);
     PL_utf8_X_V	= sv_dup_inc(proto_perl->Iutf8_X_V, param);
     PL_utf8_X_LV_LVT_V	= sv_dup_inc(proto_perl->Iutf8_X_LV_LVT_V, param);
@@ -13904,7 +13905,7 @@ Perl_varname(pTHX_ const GV *const gv, const char gvtype, PADOFFSET targ,
 
 	if (!cv || !CvPADLIST(cv))
 	    return NULL;
-	av = MUTABLE_AV((*av_fetch(CvPADLIST(cv), 0, FALSE)));
+	av = *PadlistARRAY(CvPADLIST(cv));
 	sv = *av_fetch(av, targ, FALSE);
 	sv_setsv(name, sv);
     }

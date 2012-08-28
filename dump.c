@@ -943,6 +943,12 @@ Perl_do_op_dump(pTHX_ I32 level, PerlIO *file, const OP *o)
 		if (o->op_private & OPpLVAL_DEFER)
 		    sv_catpv(tmpsv, ",LVAL_DEFER");
 	    }
+	    else if (optype == OP_RV2HV || optype == OP_PADHV) {
+	      if (o->op_private & OPpMAYBE_TRUEBOOL)
+		sv_catpvs(tmpsv, ",OPpMAYBE_TRUEBOOL");
+	      if (o->op_private & OPpTRUEBOOL)
+		sv_catpvs(tmpsv, ",OPpTRUEBOOL");
+	    }
 	    else {
 		if (o->op_private & HINT_STRICT_REFS)
 		    sv_catpv(tmpsv, ",STRICT_REFS");
@@ -2177,8 +2183,8 @@ Perl_debop(pTHX_ const OP *o)
 	CV * const cv = deb_curcv(cxstack_ix);
 	SV *sv;
         if (cv) {
-	    AV * const padlist = CvPADLIST(cv);
-            AV * const comppad = MUTABLE_AV(*av_fetch(padlist, 0, FALSE));
+	    PADLIST * const padlist = CvPADLIST(cv);
+            PAD * const comppad = *PadlistARRAY(padlist);
             sv = *av_fetch(comppad, o->op_targ, FALSE);
         } else
             sv = NULL;

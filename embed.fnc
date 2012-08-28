@@ -193,6 +193,8 @@ Apd	|void	|av_clear	|NN AV *av
 Apd	|SV*	|av_delete	|NN AV *av|I32 key|I32 flags
 ApdR	|bool	|av_exists	|NN AV *av|I32 key
 Apd	|void	|av_extend	|NN AV *av|I32 key
+p	|void	|av_extend_guts	|NULLOK AV *av|I32 key|NN SSize_t *maxp \
+				|NN SV ***allocp|NN SV ***arrayp
 ApdR	|SV**	|av_fetch	|NN AV *av|I32 key|I32 lval
 Apd	|void	|av_fill	|NN AV *av|I32 fill
 ApdR	|I32	|av_len		|NN AV *av
@@ -612,7 +614,7 @@ EXp        |UV        |_to_fold_latin1|const U8 c|NN U8 *p|NN STRLEN *lenp|const
 #endif
 #if defined(PERL_IN_UTF8_C) || defined(PERL_IN_PP_C)
 p	|UV	|_to_upper_title_latin1|const U8 c|NN U8 *p|NN STRLEN *lenp|const char S_or_s
-ApR	|bool	|_is_utf8_quotemeta|NN const U8 *p
+ApRM	|bool	|_is_utf8_quotemeta|NN const U8 *p
 #endif
 Ap	|UV	|to_uni_lower	|UV c|NN U8 *p|NN STRLEN *lenp
 Amp	|UV	|to_uni_fold	|UV c|NN U8 *p|NN STRLEN *lenp
@@ -661,9 +663,10 @@ ApR	|bool	|is_utf8_mark	|NN const U8 *p
 EXpR	|bool	|is_utf8_X_begin	|NN const U8 *p
 EXpR	|bool	|is_utf8_X_extend	|NN const U8 *p
 EXpR	|bool	|is_utf8_X_prepend	|NN const U8 *p
-EXpR	|bool	|is_utf8_X_non_hangul	|NN const U8 *p
+EXpR	|bool	|is_utf8_X_special_begin|NN const U8 *p
 EXpR	|bool	|is_utf8_X_L		|NN const U8 *p
-EXpR	|bool	|is_utf8_X_LV		|NN const U8 *p
+EXpR	|bool	|is_utf8_X_RI		|NN const U8 *p
+:not currently used EXpR	|bool	|is_utf8_X_LV		|NN const U8 *p
 EXpR	|bool	|is_utf8_X_LVT		|NN const U8 *p
 EXpR	|bool	|is_utf8_X_LV_LVT_V	|NN const U8 *p
 EXpR	|bool	|is_utf8_X_T		|NN const U8 *p
@@ -673,7 +676,6 @@ p	|OP*	|jmaybe		|NN OP *o
 : Used in pp.c 
 pP	|I32	|keyword	|NN const char *name|I32 len|bool all_keywords
 #if defined(PERL_IN_OP_C)
-s	|OP*	|opt_scalarhv	|NN OP* rep_op
 s	|void	|inplace_aassign	|NN OP* o
 #endif
 Ap	|void	|leave_scope	|I32 base
@@ -1052,7 +1054,6 @@ Ap	|SV*	|regclass_swash	|NULLOK const regexp *prog \
 EMs	|void	|add_alternate	|NN AV** alternate_ptr|NN U8* string|STRLEN len
 EMsR	|SV*	|_new_invlist_C_array|NN UV* list
 : Not used currently: EXMs	|bool	|_invlistEQ	|NN SV* const a|NN SV* const b|bool complement_b
-EMiR	|bool	|_invlist_contains_cp|NN SV* const invlist|const UV cp
 #endif
 Ap	|I32	|pregexec	|NN REGEXP * const prog|NN char* stringarg \
 				|NN char* strend|NN char* strbeg|I32 minend \
@@ -1388,18 +1389,18 @@ EsM	|void	|_append_range_to_invlist   |NN SV* const invlist|const UV start|const
 EiMR	|UV*	|_invlist_array_init	|NN SV* const invlist|const bool will_have_0
 EiMR	|UV*	|invlist_array	|NN SV* const invlist
 EsM	|void	|invlist_extend    |NN SV* const invlist|const UV len
-EiMR	|UV*	|get_invlist_len_addr	|NN SV* invlist
 EiMR	|UV*	|get_invlist_zero_addr	|NN SV* invlist
-EiMR	|UV	|invlist_len	|NN SV* const invlist
 EiMR	|UV	|invlist_max	|NN SV* const invlist
-EiM	|void	|invlist_set_len	|NN SV* const invlist|const UV len
+EiM	|void	|invlist_set_len|NN SV* const invlist|const UV len
+EiMR	|IV*	|get_invlist_previous_index_addr|NN SV* invlist
+EiMR	|IV	|invlist_previous_index|NN SV* const invlist
+EiM	|void	|invlist_set_previous_index|NN SV* const invlist|const IV index
 EiM	|void	|invlist_trim	|NN SV* const invlist
 EiMR	|SV*	|invlist_clone	|NN SV* const invlist
 EiMR	|UV*	|get_invlist_iter_addr	|NN SV* invlist
 EiMR	|UV*	|get_invlist_version_id_addr	|NN SV* invlist
 EiM	|void	|invlist_iterinit|NN SV* invlist
 EsMR	|bool	|invlist_iternext|NN SV* invlist|NN UV* start|NN UV* end
-EXpMR	|IV	|_invlist_search	|NN SV* const invlist|const UV cp
 EiMR	|UV	|invlist_highest|NN SV* const invlist
 #endif
 #if defined(PERL_IN_REGCOMP_C) || defined(PERL_IN_UTF8_C)
@@ -1417,11 +1418,14 @@ EXMpR	|SV*	|_add_range_to_invlist	|NULLOK SV* invlist|const UV start|const UV en
 EXMp	|void	|_invlist_populate_swatch   |NN SV* const invlist|const UV start|const UV end|NN U8* swatch
 #endif
 #if defined(PERL_IN_REGCOMP_C) || defined(PERL_IN_REGEXEC_C) || defined(PERL_IN_UTF8_C)
-EXp	|SV*	|_core_swash_init|NN const char* pkg|NN const char* name|NN SV* listsv|I32 minbits \
-                |I32 none|bool return_if_undef|NULLOK SV* invlist \
-		|bool passed_in_invlist_has_user_defined_property
+EXp	|SV*	|_core_swash_init|NN const char* pkg|NN const char* name \
+		|NN SV* listsv|I32 minbits|I32 none \
+		|NULLOK SV* invlist|NULLOK U8* const flags_p
 EXMpR	|SV*	|_invlist_contents|NN SV* const invlist
-EXMpR	|bool	|_is_swash_user_defined|NN SV* const swash
+EiMR	|UV*	|_get_invlist_len_addr	|NN SV* invlist
+EiMR	|UV	|_invlist_len	|NN SV* const invlist
+EMiR	|bool	|_invlist_contains_cp|NN SV* const invlist|const UV cp
+EXpMR	|IV	|_invlist_search	|NN SV* const invlist|const UV cp
 EXMpR	|SV*	|_get_swash_invlist|NN SV* const swash
 #endif
 Ap	|void	|taint_env
@@ -1472,7 +1476,6 @@ ApMd	|U8*	|bytes_from_utf8|NN const U8 *s|NN STRLEN *len|NULLOK bool *is_utf8
 ApMd	|U8*	|bytes_to_utf8	|NN const U8 *s|NN STRLEN *len
 ApdD	|UV	|utf8_to_uvchr	|NN const U8 *s|NULLOK STRLEN *retlen
 ApdD	|UV	|utf8_to_uvuni	|NN const U8 *s|NULLOK STRLEN *retlen
-ApM	|UV	|valid_utf8_to_uvchr	|NN const U8 *s|NULLOK STRLEN *retlen
 ApM	|UV	|valid_utf8_to_uvuni	|NN const U8 *s|NULLOK STRLEN *retlen
 Apd	|UV	|utf8_to_uvchr_buf	|NN const U8 *s|NN const U8 *send|NULLOK STRLEN *retlen
 Apd	|UV	|utf8_to_uvuni_buf	|NN const U8 *s|NN const U8 *send|NULLOK STRLEN *retlen
@@ -1480,8 +1483,10 @@ pM	|bool	|check_utf8_print	|NN const U8 *s|const STRLEN len
 
 #ifdef EBCDIC
 Adp	|UV	|utf8n_to_uvchr	|NN const U8 *s|STRLEN curlen|NULLOK STRLEN *retlen|U32 flags
+ApM	|UV	|valid_utf8_to_uvchr	|NN const U8 *s|NULLOK STRLEN *retlen
 #else
 Adpbm	|UV	|utf8n_to_uvchr	|NN const U8 *s|STRLEN curlen|NULLOK STRLEN *retlen|U32 flags
+ApbmM	|UV	|valid_utf8_to_uvchr	|NN const U8 *s|NULLOK STRLEN *retlen
 #endif
 
 Adp	|UV	|utf8n_to_uvuni	|NN const U8 *s|STRLEN curlen|NULLOK STRLEN *retlen|U32 flags
@@ -2337,11 +2342,14 @@ pd	|void	|pad_fixup_inner_anons|NN PADLIST *padlist|NN CV *old_cv|NN CV *new_cv
 pdX	|void	|pad_push	|NN PADLIST *padlist|int depth
 ApdR	|HV*	|pad_compname_type|const PADOFFSET po
 #if defined(USE_ITHREADS)
-pdR	|AV*	|padlist_dup	|NULLOK AV *srcpad|NN CLONE_PARAMS *param
+pdR	|PADLIST *|padlist_dup	|NULLOK PADLIST *srcpad \
+				|NN CLONE_PARAMS *param
 #endif
+p	|PAD **	|padlist_store	|NN PADLIST *padlist|I32 key \
+				|NULLOK PAD *val
 
 ApdR	|CV*	|find_runcv	|NULLOK U32 *db_seqp
-pR	|CV*	|find_runcv_where|U8 cond|NULLOK void *arg \
+pR	|CV*	|find_runcv_where|U8 cond|IV arg \
 				 |NULLOK U32 *db_seqp
 : Only used in perl.c
 p	|void	|free_tied_hv_pool

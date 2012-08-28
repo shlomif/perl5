@@ -522,13 +522,18 @@ perl_destruct(pTHXx)
     PERL_WAIT_FOR_CHILDREN;
 
     destruct_level = PL_perl_destruct_level;
-#ifdef DEBUGGING
+#if defined(DEBUGGING) || defined(PERL_TRACK_MEMPOOL)
     {
 	const char * const s = PerlEnv_getenv("PERL_DESTRUCT_LEVEL");
 	if (s) {
-            const int i = atoi(s);
-	    if (destruct_level < i)
-		destruct_level = i;
+        const int i = atoi(s);
+#ifdef DEBUGGING
+	    if (destruct_level < i) destruct_level = i;
+#endif
+#ifdef PERL_TRACK_MEMPOOL
+        /* RT #114496, for perl_free */
+        PL_perl_destruct_level = i;
+#endif
 	}
     }
 #endif
@@ -1294,8 +1299,7 @@ perl_free(pTHXx)
 	 * Don't free thread memory if PERL_DESTRUCT_LEVEL is set to a non-zero
 	 * value as we're probably hunting memory leaks then
 	 */
-	const char * const s = PerlEnv_getenv("PERL_DESTRUCT_LEVEL");
-	if (!s || atoi(s) == 0) {
+	if (PL_perl_destruct_level == 0) {
 	    const U32 old_debug = PL_debug;
 	    /* Emulate the PerlHost behaviour of free()ing all memory allocated in this
 	       thread at thread exit.  */
@@ -2637,7 +2641,6 @@ Perl_call_sv(pTHX_ SV *sv, VOL I32 flags)
     }
 
     Zero(&myop, 1, LOGOP);
-    myop.op_next = NULL;
     if (!(flags & G_NOARGS))
 	myop.op_flags |= OPf_STACKED;
     myop.op_flags |= OP_GIMME_REVERSE(flags);
@@ -2656,11 +2659,11 @@ Perl_call_sv(pTHX_ SV *sv, VOL I32 flags)
 	    * curstash may be meaningless. */
 	  && (SvTYPE(sv) != SVt_PVCV || CvSTASH((const CV *)sv) != PL_debstash)
 	  && !(flags & G_NODEBUG))
-	PL_op->op_private |= OPpENTERSUB_DB;
+	myop.op_private |= OPpENTERSUB_DB;
 
     if (flags & G_METHOD) {
 	Zero(&method_op, 1, UNOP);
-	method_op.op_next = PL_op;
+	method_op.op_next = (OP*)&myop;
 	method_op.op_ppaddr = PL_ppaddr[OP_METHOD];
 	method_op.op_type = OP_METHOD;
 	myop.op_ppaddr = PL_ppaddr[OP_ENTERSUB];
@@ -2767,13 +2770,12 @@ Perl_eval_sv(pTHX_ SV *sv, I32 flags)
 
     SAVEOP();
     PL_op = (OP*)&myop;
-    Zero(PL_op, 1, UNOP);
+    Zero(&myop, 1, UNOP);
     EXTEND(PL_stack_sp, 1);
     *++PL_stack_sp = sv;
 
     if (!(flags & G_NOARGS))
 	myop.op_flags = OPf_STACKED;
-    myop.op_next = NULL;
     myop.op_type = OP_ENTEREVAL;
     myop.op_flags |= OP_GIMME_REVERSE(flags);
     if (flags & G_KEEPERR)

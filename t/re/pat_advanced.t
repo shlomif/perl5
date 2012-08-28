@@ -1735,7 +1735,7 @@ EOP
 
         my @notIsPunct = grep {/[[:punct:]]/ and not /\p{IsPunct}/}
                                 map {chr} 0x20 .. 0x7f;
-        is(join ('', @notIsPunct), '#$%&*+-<=>@^`|~',
+        is(join ('', @notIsPunct), '$+<=>^`|~',
 	   '[:punct:] disagrees with IsPunct on Symbols');
 
         my @isPrint = grep {not /[[:print:]]/ and /\p{IsPrint}/}
@@ -2178,6 +2178,9 @@ EOP
                             "chr(0xFFFF_FFFE) can match a Unicode property");
             ok(chr(0xFFFF_FFFF) =~ /\p{Is_32_Bit_Super}/,
                             "chr(0xFFFF_FFFF) can match a Unicode property");
+            my $p = qr/^[\x{FFFF_FFFF}]$/;
+            ok(chr(0xFFFF_FFFF) =~ $p,
+                    "chr(0xFFFF_FFFF) can match itself in a [class]");
         }
         else {
             no warnings 'overflow';
@@ -2185,6 +2188,10 @@ EOP
                     "chr(0xFFFF_FFFF_FFFF_FFFE) can match a Unicode property");
             ok(chr(0xFFFF_FFFF_FFFF_FFFF) =~ qr/^\p{Is_Portable_Super}$/,
                     "chr(0xFFFF_FFFF_FFFF_FFFF) can match a Unicode property");
+
+            my $p = qr/^[\x{FFFF_FFFF_FFFF_FFFF}]$/;
+            ok(chr(0xFFFF_FFFF_FFFF_FFFF) =~ $p,
+                    "chr(0xFFFF_FFFF_FFFF_FFFF) can match itself in a [class]");
 
             # This test is because something was declared as 32 bits, but
             # should have been cast to 64; only a problem where

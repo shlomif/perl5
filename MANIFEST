@@ -4192,6 +4192,8 @@ hints/vmesa.sh			Hints for named architecture
 hints/vos.sh			Hints for named architecture
 hv.c				Hash value code
 hv.h				Hash value header
+inline.h			Static inline functions
+inline_invlist.c		Inline functions for handling inversion lists
 INSTALL				Detailed installation instructions
 installhtml			Perl script to install html files for pods
 install_lib.pl			functions shared between install* scripts
@@ -4913,6 +4915,7 @@ regen/regcharclass.pl		Generate regcharclass.h from inline data
 regen/regcomp.pl		Builder of regnodes.h
 regen/regen_lib.pl		Common file routines for generator scripts
 regen/uconfig_h.pl		generate uconfig.h (requires /bin/sh)
+regen/utf8_strings.pl		generate utf8_strings.h
 regen/warnings.pl		Program to write warnings.h and lib/warnings.pm
 regexec.c			Regular expression evaluator
 regexp.h			Public declarations for the above
@@ -5282,6 +5285,7 @@ t/op/hashassign.t		See if hash assignments work
 t/op/hash-rt85026.t		See if hash iteration/deletion works
 t/op/hash.t			See if the complexity attackers are repelled
 t/op/hashwarn.t			See if warnings for bad hash assignments work
+t/op/heredoc.t			See if heredoc edge and corner cases work
 t/op/inccode.t			See if coderefs work in @INC
 t/op/inccode-tie.t		See if tie to @INC works
 t/op/incfilter.t		See if the source filters in coderef-in-@INC work
@@ -5367,6 +5371,7 @@ t/op/sub_lval.t			See if lvalue subroutines work
 t/op/substr.t			See if substr works
 t/op/substr_thr.t		See if substr works in another thread
 t/op/sub.t			See if subroutines work
+t/op/svleak.pl			Test file for svleak.t
 t/op/svleak.t			See if stuff leaks SVs
 t/op/switch.t			See if switches (given/when) work
 t/op/symbolcache.t		See if undef/delete works on stashes with functions
@@ -5549,6 +5554,7 @@ universal.c			The default UNIVERSAL package methods
 unixish.h			Defines that are assumed on Unix
 utf8.c				Unicode routines
 utf8.h				Unicode header
+utf8_strings.h			compile-time macros for characters in UTF-8
 utfebcdic.h			Unicode on EBCDIC (UTF-EBCDIC, tr16) header
 util.c				Utility routines
 util.h				Dummy header

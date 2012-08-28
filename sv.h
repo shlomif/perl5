@@ -224,42 +224,10 @@ perform the upgrade if necessary.  See C<svtype>.
 #define SvFLAGS(sv)	(sv)->sv_flags
 #define SvREFCNT(sv)	(sv)->sv_refcnt
 
-#if defined(__GNUC__) && !defined(PERL_GCC_BRACE_GROUPS_FORBIDDEN)
-#  define SvREFCNT_inc(sv)		\
-    ({					\
-	SV * const _sv = MUTABLE_SV(sv);	\
-	if (_sv)			\
-	     (SvREFCNT(_sv))++;		\
-	_sv;				\
-    })
-#  define SvREFCNT_inc_simple(sv)	\
-    ({					\
-	if (sv)				\
-	     (SvREFCNT(sv))++;		\
-	MUTABLE_SV(sv);				\
-    })
-#  define SvREFCNT_inc_NN(sv)		\
-    ({					\
-	SV * const _sv = MUTABLE_SV(sv);	\
-	SvREFCNT(_sv)++;		\
-	_sv;				\
-    })
-#  define SvREFCNT_inc_void(sv)		\
-    ({					\
-	SV * const _sv = MUTABLE_SV(sv);	\
-	if (_sv)			\
-	    (void)(SvREFCNT(_sv)++);	\
-    })
-#else
-#  define SvREFCNT_inc(sv)	\
-	((PL_Sv=MUTABLE_SV(sv)) ? (++(SvREFCNT(PL_Sv)),PL_Sv) : NULL)
-#  define SvREFCNT_inc_simple(sv) \
-	((sv) ? (SvREFCNT(sv)++,MUTABLE_SV(sv)) : NULL)
-#  define SvREFCNT_inc_NN(sv) \
-	(PL_Sv=MUTABLE_SV(sv),++(SvREFCNT(PL_Sv)),PL_Sv)
-#  define SvREFCNT_inc_void(sv) \
-	(void)((PL_Sv=MUTABLE_SV(sv)) ? ++(SvREFCNT(PL_Sv)) : 0)
-#endif
+#define SvREFCNT_inc(sv)		S_SvREFCNT_inc(MUTABLE_SV(sv))
+#define SvREFCNT_inc_simple(sv)		SvREFCNT_inc(sv)
+#define SvREFCNT_inc_NN(sv)		S_SvREFCNT_inc_NN(MUTABLE_SV(sv))
+#define SvREFCNT_inc_void(sv)		S_SvREFCNT_inc_void(MUTABLE_SV(sv))
 
 /* These guys don't need the curly blocks */
 #define SvREFCNT_inc_simple_void(sv)	STMT_START { if (sv) SvREFCNT(sv)++; } STMT_END
@@ -267,22 +235,7 @@ perform the upgrade if necessary.  See C<svtype>.
 #define SvREFCNT_inc_void_NN(sv)	(void)(++SvREFCNT(MUTABLE_SV(sv)))
 #define SvREFCNT_inc_simple_void_NN(sv)	(void)(++SvREFCNT(MUTABLE_SV(sv)))
 
-#if defined(__GNUC__) && !defined(PERL_GCC_BRACE_GROUPS_FORBIDDEN)
-#  define SvREFCNT_dec(sv)		\
-    ({					\
-	SV * const _sv = MUTABLE_SV(sv);	\
-	if (_sv) {			\
-	    if (SvREFCNT(_sv)) {	\
-		if (--(SvREFCNT(_sv)) == 0) \
-		    Perl_sv_free2(aTHX_ _sv);	\
-	    } else {			\
-		sv_free(_sv);		\
-	    }				\
-	}				\
-    })
-#else
-#define SvREFCNT_dec(sv)	sv_free(MUTABLE_SV(sv))
-#endif
+#define SvREFCNT_dec(sv)	S_SvREFCNT_dec(aTHX_ MUTABLE_SV(sv))
 
 #define SVTYPEMASK	0xff
 #define SvTYPE(sv)	((svtype)((sv)->sv_flags & SVTYPEMASK))
@@ -524,7 +477,7 @@ typedef U16 cv_flags_t;
     }		xcv_root_u;							\
     GV *	xcv_gv;								\
     char *	xcv_file;							\
-    AV *	xcv_padlist;							\
+    PADLIST *	xcv_padlist;							\
     CV *	xcv_outside;							\
     U32		xcv_outside_seq; /* the COP sequence (at the point of our	\
 				  * compilation) in the lexically enclosing	\
@@ -891,24 +844,6 @@ in gv.h: */
 
 #define SvAMAGIC(sv)		(SvROK(sv) && SvOBJECT(SvRV(sv)) &&	\
 				 HvAMAGIC(SvSTASH(SvRV(sv))))
-#if defined(__GNUC__) && !defined(PERL_GCC_BRACE_GROUPS_FORBIDDEN)
-#  define SvAMAGIC_on(sv)	({ SV * const kloink = sv;		\
-				   assert(SvROK(kloink));		\
-				   if (SvOBJECT(SvRV(kloink)))		\
-				    HvAMAGIC_on(SvSTASH(SvRV(kloink)));	\
-				})
-#  define SvAMAGIC_off(sv)	({ SV * const kloink = sv;		\
-				   if(SvROK(kloink)			\
-				      && SvOBJECT(SvRV(kloink)))	\
-				     HvAMAGIC_off(SvSTASH(SvRV(kloink))); \
-				})
-#else
-#  define SvAMAGIC_on(sv) \
-	SvOBJECT(SvRV(sv)) && (SvFLAGS(SvSTASH(SvRV(sv))) |= SVf_AMAGIC)
-#  define SvAMAGIC_off(sv) \
-	(SvROK(sv) && SvOBJECT(SvRV(sv)) \
-	    && (SvFLAGS(SvSTASH(SvRV(sv))) &= ~SVf_AMAGIC))
-#endif
 
 /* To be used on the stashes themselves: */
 #define HvAMAGIC(hv)		(SvFLAGS(hv) & SVf_AMAGIC)
@@ -1007,33 +942,10 @@ sv_force_normal does nothing.
 #define SvPADSTALE(sv)	((SvFLAGS(sv) & (SVs_PADMY|SVs_PADSTALE)) \
 				    == (SVs_PADMY|SVs_PADSTALE))
 
-#if defined (DEBUGGING) && defined(__GNUC__) && !defined(PERL_GCC_BRACE_GROUPS_FORBIDDEN)
-#  define SvPADTMP_on(sv)	({			\
-	    SV *const _svpad = MUTABLE_SV(sv);		\
-	    assert(!(SvFLAGS(_svpad) & SVs_PADMY));	\
-	    SvFLAGS(_svpad) |= SVs_PADTMP;		\
-	})
-#  define SvPADTMP_off(sv)	({			\
-	    SV *const _svpad = MUTABLE_SV(sv);		\
-	    assert(!(SvFLAGS(_svpad) & SVs_PADMY));	\
-	    SvFLAGS(_svpad) &= ~SVs_PADTMP;		\
-	})
-#  define SvPADSTALE_on(sv)	({			\
-	    SV *const _svpad = MUTABLE_SV(sv);		\
-	    assert(SvFLAGS(_svpad) & SVs_PADMY);	\
-	    SvFLAGS(_svpad) |= SVs_PADSTALE;		\
-	})
-#  define SvPADSTALE_off(sv)	({			\
-	    SV *const _svpad = MUTABLE_SV(sv);		\
-	    assert(SvFLAGS(_svpad) & SVs_PADMY);	\
-	    SvFLAGS(_svpad) &= ~SVs_PADSTALE;		\
-	})
-#else
-#  define SvPADTMP_on(sv)	(SvFLAGS(sv) |= SVs_PADTMP)
-#  define SvPADTMP_off(sv)	(SvFLAGS(sv) &= ~SVs_PADTMP)
-#  define SvPADSTALE_on(sv)	(SvFLAGS(sv) |= SVs_PADSTALE)
-#  define SvPADSTALE_off(sv)	(SvFLAGS(sv) &= ~SVs_PADSTALE)
-#endif
+#define SvPADTMP_on(sv)		S_SvPADTMP_on(MUTABLE_SV(sv))
+#define SvPADTMP_off(sv)	S_SvPADTMP_off(MUTABLE_SV(sv))
+#define SvPADSTALE_on(sv)	S_SvPADSTALE_on(MUTABLE_SV(sv))
+#define SvPADSTALE_off(sv)	S_SvPADSTALE_off(MUTABLE_SV(sv))
 
 #define SvTEMP(sv)		(SvFLAGS(sv) & SVs_TEMP)
 #define SvTEMP_on(sv)		(SvFLAGS(sv) |= SVs_TEMP)
@@ -2084,6 +1996,18 @@ C<SvUTF8_on> on the new SV.  Implemented as a wrapper around C<newSVpvn_flags>.
 */
 
 #define newSVpvn_utf8(s, len, u) newSVpvn_flags((s), (len), (u) ? SVf_UTF8 : 0)
+
+/*
+=for apidoc Amx|SV*|newSVpadname|PADNAME *pn
+
+Creates a new SV containing the pad name.  This is currently identical
+to C<newSVsv>, but pad names may cease being SVs at some point, so
+C<newSVpadname> is preferable.
+
+=cut
+*/
+
+#define newSVpadname(pn) newSVsv(pn)
 
 /*
 =for apidoc Am|void|SvOOK_offset|NN SV*sv|STRLEN len

@@ -20,7 +20,7 @@ use B qw(class main_root main_start main_cv svref_2object opnumber perlstring
          CVf_METHOD CVf_LVALUE
 	 PMf_KEEP PMf_GLOBAL PMf_CONTINUE PMf_EVAL PMf_ONCE
 	 PMf_MULTILINE PMf_SINGLELINE PMf_FOLD PMf_EXTENDED);
-$VERSION = '1.16';
+$VERSION = '1.17';
 use strict;
 use vars qw/$AUTOLOAD/;
 use warnings ();
@@ -941,6 +941,7 @@ sub deparse_format {
 	$kid = $kid->sibling;
 	for (; not null $kid; $kid = $kid->sibling) {
 	    push @exprs, $self->deparse($kid, -1);
+	    $exprs[-1] =~ s/;\z//;
 	}
 	push @text, "\f".join(", ", @exprs)."\n" if @exprs;
 	$op = $op->sibling;

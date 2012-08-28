@@ -2442,6 +2442,13 @@ typedef struct ptr_tbl_ent PTR_TBL_ENT_t;
 typedef struct ptr_tbl PTR_TBL_t;
 typedef struct clone_params CLONE_PARAMS;
 
+/* a pad or name pad is currently just an AV; but that might change,
+ * so hide the type.  */
+typedef struct padlist PADLIST;
+typedef AV PAD;
+typedef AV PADNAMELIST;
+typedef SV PADNAME;
+
 #include "handy.h"
 
 #if defined(USE_LARGE_FILES) && !defined(NO_64_BIT_RAWIO)
@@ -3449,9 +3456,9 @@ struct _sublex_info {
     U8 super_state;	/* lexer state to save */
     U16 sub_inwhat;	/* "lex_inwhat" to use */
     OP *sub_op;		/* "lex_op" to use */
-    char *super_bufptr;	/* PL_parser->bufptr that was */
-    char *super_bufend;	/* PL_parser->bufend that was */
     char *re_eval_start;/* start of "(?{..." text */
+    SV *re_eval_str;	/* "(?{...})" text */
+    SV *repl;		/* replacement of s/// or y/// */
 };
 
 #include "parser.h"
@@ -5150,6 +5157,8 @@ EXTCONST bool PL_valid_types_NV_set[];
 
 #endif
 
+/* Static inline funcs that depend on includes and declarations above */
+#include "inline.h"
 
 #include "overload.h"
 

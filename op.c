@@ -5605,8 +5605,7 @@ Perl_newSTATEOP(pTHX_ I32 flags, char *label, OP *o)
         CopLINE_set(cop, CopLINE(PL_curcop));
     else {
 	CopLINE_set(cop, PL_parser->copline);
-	if (PL_parser)
-	    PL_parser->copline = NOLINE;
+	PL_parser->copline = NOLINE;
     }
 #ifdef USE_ITHREADS
     CopFILE_set(cop, CopFILE(PL_curcop));	/* XXX share in a pvtable? */
@@ -7066,7 +7065,7 @@ Perl_newATTRSUB_flags(pTHX_ I32 floor, OP *o, OP *proto, OP *attrs,
 #endif
 	) {
 	    cv_flags_t existing_builtin_attrs = CvFLAGS(cv) & CVf_BUILTIN_ATTRS;
-	    AV *const temp_av = CvPADLIST(cv);
+	    PADLIST *const temp_av = CvPADLIST(cv);
 	    CV *const temp_cv = CvOUTSIDE(cv);
 	    const cv_flags_t other_flags =
 		CvFLAGS(cv) & (CVf_SLABBED|CVf_WEAKOUTSIDE);
@@ -10206,34 +10205,6 @@ Perl_ck_length(pTHX_ OP *o)
     return o;
 }
 
-/* caller is supposed to assign the return to the 
-   container of the rep_op var */
-STATIC OP *
-S_opt_scalarhv(pTHX_ OP *rep_op) {
-    dVAR;
-    UNOP *unop;
-
-    PERL_ARGS_ASSERT_OPT_SCALARHV;
-
-    NewOp(1101, unop, 1, UNOP);
-    unop->op_type = (OPCODE)OP_BOOLKEYS;
-    unop->op_ppaddr = PL_ppaddr[OP_BOOLKEYS];
-    unop->op_flags = (U8)(OPf_WANT_SCALAR | OPf_KIDS );
-    unop->op_private = (U8)(1 | ((OPf_WANT_SCALAR | OPf_KIDS) >> 8));
-    unop->op_first = rep_op;
-    unop->op_next = rep_op->op_next;
-    rep_op->op_next = (OP*)unop;
-    rep_op->op_flags|=(OPf_REF | OPf_MOD);
-    unop->op_sibling = rep_op->op_sibling;
-    rep_op->op_sibling = NULL;
-    /* unop->op_targ = pad_alloc(OP_BOOLKEYS, SVs_PADTMP); */
-    if (rep_op->op_type == OP_PADHV) { 
-        rep_op->op_flags &= ~OPf_WANT_SCALAR;
-        rep_op->op_flags |= OPf_WANT_LIST;
-    }
-    return (OP*)unop;
-}                        
-
 /* Check for in place reverse and sort assignments like "@a = reverse @a"
    and modify the optree to make them work inplace */
 
@@ -10525,10 +10496,18 @@ Perl_rpeep(pTHX_ register OP *o)
             OP *fop;
             OP *sop;
             
+#define HV_OR_SCALARHV(op)                                   \
+    (  (op)->op_type == OP_PADHV || (op)->op_type == OP_RV2HV \
+       ? (op)                                                  \
+       : (op)->op_type == OP_SCALAR && (op)->op_flags & OPf_KIDS \
+       && (  cUNOPx(op)->op_first->op_type == OP_PADHV          \
+          || cUNOPx(op)->op_first->op_type == OP_RV2HV)          \
+         ? cUNOPx(op)->op_first                                   \
+         : NULL)
+
         case OP_NOT:
-            fop = cUNOP->op_first;
-            sop = NULL;
-            goto stitch_keys;
+            if ((fop = HV_OR_SCALARHV(cUNOP->op_first)))
+                fop->op_private |= OPpTRUEBOOL;
             break;
 
         case OP_AND:
@@ -10543,12 +10522,10 @@ Perl_rpeep(pTHX_ register OP *o)
 		o->op_next = o->op_next->op_next;
 	    DEFER(cLOGOP->op_other);
           
-          stitch_keys:	    
 	    o->op_opt = 1;
-            if ((fop->op_type == OP_PADHV || fop->op_type == OP_RV2HV)
-                || ( sop && 
-                     (sop->op_type == OP_PADHV || sop->op_type == OP_RV2HV)
-                    )
+            fop = HV_OR_SCALARHV(fop);
+            if (sop) sop = HV_OR_SCALARHV(sop);
+            if (fop || sop
             ){	
                 OP * nop = o;
                 OP * lop = o;
@@ -10570,24 +10547,33 @@ Perl_rpeep(pTHX_ register OP *o)
                         }
                     }            
                 }
-                if ((lop->op_flags & OPf_WANT) == OPf_WANT_VOID) {
-                    if (fop->op_type == OP_PADHV || fop->op_type == OP_RV2HV) 
-                        cLOGOP->op_first = opt_scalarhv(fop);
-                    if (sop && (sop->op_type == OP_PADHV || sop->op_type == OP_RV2HV)) 
-                        cLOGOP->op_first->op_sibling = opt_scalarhv(sop);
-                }                                        
+                if (fop) {
+                    if (  (lop->op_flags & OPf_WANT) == OPf_WANT_VOID
+                      || o->op_type == OP_AND  )
+                        fop->op_private |= OPpTRUEBOOL;
+                    else if (!(lop->op_flags & OPf_WANT))
+                        fop->op_private |= OPpMAYBE_TRUEBOOL;
+                }
+                if (  (lop->op_flags & OPf_WANT) == OPf_WANT_VOID
+                   && sop)
+                    sop->op_private |= OPpTRUEBOOL;
             }                  
             
 	    
 	    break;
-	}    
 	
+	case OP_COND_EXPR:
+	    if ((fop = HV_OR_SCALARHV(cLOGOP->op_first)))
+		fop->op_private |= OPpTRUEBOOL;
+#undef HV_OR_SCALARHV
+	    /* GERONIMO! */
+	}    
+
 	case OP_MAPWHILE:
 	case OP_GREPWHILE:
 	case OP_ANDASSIGN:
 	case OP_ORASSIGN:
 	case OP_DORASSIGN:
-	case OP_COND_EXPR:
 	case OP_RANGE:
 	case OP_ONCE:
 	    while (cLOGOP->op_other->op_type == OP_NULL)

@@ -443,8 +443,8 @@ PERLVARI(I, profiledata, U32 *,	NULL)	/* table of ops, counts */
 PERLVAR(I, compiling,	COP)		/* compiling/done executing marker */
 
 PERLVAR(I, compcv,	CV *)		/* currently compiling subroutine */
-PERLVAR(I, comppad,	AV *)		/* storage for lexically scoped temporaries */
-PERLVAR(I, comppad_name, AV *)		/* variable names for "my" variables */
+PERLVAR(I, comppad,	PAD *)		/* storage for lexically scoped temporaries */
+PERLVAR(I, comppad_name, PADNAMELIST *)	/* variable names for "my" variables */
 PERLVAR(I, comppad_name_fill,	I32)	/* last "introduced" variable offset */
 PERLVAR(I, comppad_name_floor,	I32)	/* start of vars in innermost block */
 
@@ -629,10 +629,10 @@ PERLVAR(I, utf8_mark,	SV *)
 PERLVAR(I, utf8_X_begin, SV *)
 PERLVAR(I, utf8_X_extend, SV *)
 PERLVAR(I, utf8_X_prepend, SV *)
-PERLVAR(I, utf8_X_non_hangul, SV *)
+PERLVAR(I, utf8_X_special_begin, SV *)
 PERLVAR(I, utf8_X_L,	SV *)
-PERLVAR(I, utf8_X_LV,	SV *)
 PERLVAR(I, utf8_X_LVT,	SV *)
+PERLVAR(I, utf8_X_RI,	SV *)
 PERLVAR(I, utf8_X_T,	SV *)
 PERLVAR(I, utf8_X_V,	SV *)
 PERLVAR(I, utf8_X_LV_LVT_V, SV *)
@@ -778,6 +778,7 @@ PERLVAR(I, custom_ops,	HV *)		/* custom op registrations */
 PERLVARI(I, globhook,	globhook_t, NULL)
 
 PERLVARI(I, glob_index,	int,	0)
+PERLVARI(I, padlist_generation, U32, 1)	/* id to identify padlist clones */
 PERLVAR(I, reentrant_retint, int)	/* Integer return value from reentrant functions */
 
 /* The last unconditional member of the interpreter structure when 5.10.0 was

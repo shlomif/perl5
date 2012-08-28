@@ -777,37 +777,11 @@ PP(pp_rv2av)
 	if (SvTYPE(sv) != type)
 	    /* diag_listed_as: Not an ARRAY reference */
 	    DIE(aTHX_ "Not %s reference", is_pp_rv2av ? an_array : a_hash);
-	if (PL_op->op_flags & OPf_REF) {
-	    SETs(sv);
-	    RETURN;
-	}
-	else if (PL_op->op_private & OPpMAYBE_LVSUB) {
-	  const I32 flags = is_lvalue_sub();
-	  if (flags && !(flags & OPpENTERSUB_INARGS)) {
-	    if (gimme != G_ARRAY)
-		goto croak_cant_return;
-	    SETs(sv);
-	    RETURN;
-	  }
-	}
 	else if (PL_op->op_flags & OPf_MOD
 		&& PL_op->op_private & OPpLVAL_INTRO)
 	    Perl_croak(aTHX_ "%s", PL_no_localize_ref);
     }
-    else {
-	if (SvTYPE(sv) == type) {
-	    if (PL_op->op_flags & OPf_REF) {
-		SETs(sv);
-		RETURN;
-	    }
-	    else if (LVRET) {
-		if (gimme != G_ARRAY)
-		    goto croak_cant_return;
-		SETs(sv);
-		RETURN;
-	    }
-	}
-	else {
+    else if (SvTYPE(sv) != type) {
 	    GV *gv;
 	
 	    if (!isGV_with_GP(sv)) {
@@ -822,11 +796,12 @@ PP(pp_rv2av)
 	    sv = is_pp_rv2av ? MUTABLE_SV(GvAVn(gv)) : MUTABLE_SV(GvHVn(gv));
 	    if (PL_op->op_private & OPpLVAL_INTRO)
 		sv = is_pp_rv2av ? MUTABLE_SV(save_ary(gv)) : MUTABLE_SV(save_hash(gv));
-	    if (PL_op->op_flags & OPf_REF) {
+    }
+    if (PL_op->op_flags & OPf_REF) {
 		SETs(sv);
 		RETURN;
-	    }
-	    else if (PL_op->op_private & OPpMAYBE_LVSUB) {
+    }
+    else if (PL_op->op_private & OPpMAYBE_LVSUB) {
 	      const I32 flags = is_lvalue_sub();
 	      if (flags && !(flags & OPpENTERSUB_INARGS)) {
 		if (gimme != G_ARRAY)
@@ -834,8 +809,6 @@ PP(pp_rv2av)
 		SETs(sv);
 		RETURN;
 	      }
-	    }
-	}
     }
 
     if (is_pp_rv2av) {
@@ -873,6 +846,11 @@ PP(pp_rv2av)
 	    *PL_stack_sp = sv;
 	    return Perl_do_kv(aTHX);
 	}
+	else if ((PL_op->op_private & OPpTRUEBOOL
+	      || (  PL_op->op_private & OPpMAYBE_TRUEBOOL
+		 && block_gimme() == G_VOID  ))
+	      && (!SvRMAGICAL(sv) || !mg_find(sv, PERL_MAGIC_tied)))
+	    SETs(HvUSEDKEYS(sv) ? &PL_sv_yes : sv_2mortal(newSViv(0)));
 	else if (gimme == G_SCALAR) {
 	    dTARGET;
 	    TARG = Perl_hv_scalar(aTHX_ MUTABLE_HV(sv));
@@ -2683,7 +2661,7 @@ try_autoload:
 	/* This path taken at least 75% of the time   */
 	dMARK;
 	I32 items = SP - MARK;
-	AV* const padlist = CvPADLIST(cv);
+	PADLIST * const padlist = CvPADLIST(cv);
 	PUSHBLOCK(cx, CXt_SUB, MARK);
 	PUSHSUB(cx);
 	cx->blk_sub.retop = PL_op->op_next;

@@ -131,6 +131,11 @@ PP(pp_padhv)
     if (gimme == G_ARRAY) {
 	RETURNOP(Perl_do_kv(aTHX));
     }
+    else if ((PL_op->op_private & OPpTRUEBOOL
+	  || (  PL_op->op_private & OPpMAYBE_TRUEBOOL
+	     && block_gimme() == G_VOID  ))
+	  && (!SvRMAGICAL(TARG) || !mg_find(TARG, PERL_MAGIC_tied)))
+	SETs(HvUSEDKEYS(TARG) ? &PL_sv_yes : sv_2mortal(newSViv(0)));
     else if (gimme == G_SCALAR) {
 	SV* const sv = Perl_hv_scalar(aTHX_ MUTABLE_HV(TARG));
 	SETs(sv);
@@ -278,8 +283,7 @@ Perl_softref2xv(pTHX_ SV *const sv, const char *const what,
     }
     if (!SvOK(sv)) {
 	if (
-	  PL_op->op_flags & OPf_REF &&
-	  PL_op->op_next->op_type != OP_BOOLKEYS
+	  PL_op->op_flags & OPf_REF
 	)
 	    Perl_die(aTHX_ PL_no_usym, what);
 	if (ckWARN(WARN_UNINITIALIZED))
@@ -5718,26 +5722,6 @@ PP(unimplemented_op)
     DIE(aTHX_ "panic: unimplemented op %s (#%d) called", name,	op_type);
 }
 
-PP(pp_boolkeys)
-{
-    dVAR;
-    dSP;
-    HV * const hv = (HV*)POPs;
-    
-    if (SvTYPE(hv) != SVt_PVHV) { XPUSHs(&PL_sv_no); RETURN; }
-
-    if (SvRMAGICAL(hv)) {
-	MAGIC * const mg = mg_find((SV*)hv, PERL_MAGIC_tied);
-	if (mg) {
-            XPUSHs(magic_scalarpack(hv, mg));
-	    RETURN;
-        }	    
-    }
-
-    XPUSHs(boolSV(HvUSEDKEYS(hv) != 0));
-    RETURN;
-}
-
 /* For sorting out arguments passed to a &CORE:: subroutine */
 PP(pp_coreargs)
 {
@@ -5799,7 +5783,7 @@ PP(pp_coreargs)
 	  try_defsv:
 	    if (!numargs && defgv && whicharg == minargs + 1) {
 		PUSHs(find_rundefsv2(
-		    find_runcv_where(FIND_RUNCV_level_eq, (void *)1, NULL),
+		    find_runcv_where(FIND_RUNCV_level_eq, 1, NULL),
 		    cxstack[cxstack_ix].blk_oldcop->cop_seq
 		));
 	    }
@@ -5888,7 +5872,7 @@ PP(pp_runcv)
     dSP;
     CV *cv;
     if (PL_op->op_private & OPpOFFBYONE) {
-	cv = find_runcv_where(FIND_RUNCV_level_eq, (void *)1, NULL);
+	cv = find_runcv_where(FIND_RUNCV_level_eq, 1, NULL);
     }
     else cv = find_runcv(NULL);
     XPUSHs(CvEVAL(cv) ? &PL_sv_undef : sv_2mortal(newRV((SV *)cv)));

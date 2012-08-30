@@ -1731,6 +1731,7 @@ use vars qw(
     $stack_depth
     @to_watch
     $try
+    $end
 );
 
 sub DB {
@@ -1741,7 +1742,6 @@ sub DB {
 	my $position;
 	my ($prefix, $after, $infix);
 	my $pat;
-	my $end;
 
 	if ($ENV{PERL5DB_THREADED}) {
 		$tid = eval { "[".threads->tid."]" };
@@ -2764,7 +2764,8 @@ mess us up.
                 $cmd =~ /^\/(.*)$/ && do {
 
                     # The pattern as a string.
-                    my $inpat = $1;
+                    use vars qw($inpat);
+                    $inpat = $1;
 
                     # Remove the final slash.
                     $inpat =~ s:([^\\])/$:$1:;

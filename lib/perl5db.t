@@ -28,7 +28,7 @@ BEGIN {
     }
 }
 
-plan(38);
+plan(39);
 
 my $rc_filename = '.perldb';
 
@@ -1048,6 +1048,34 @@ package main;
             .*
         /msx,
         "f command is working.",
+    );
+}
+
+# We broke the /pattern/ command because apparently the CORE::eval-s inside
+# lib/perl5db.pl cannot handle lexical variable properly. So we now fix this
+# bug.
+#
+# TODO :
+#
+# 1. Fix the ?pattern? command too.
+#
+# 2. Go over the rest of the "eval"s in lib/perl5db.t and see if they cause
+# problems.
+{
+    my $wrapper = DebugWrap->new(
+        {
+            cmds =>
+            [
+                '/for/',
+                'q',
+            ],
+            prog => '../lib/perl5db/t/eval-line-bug',
+        }
+    );
+
+    $wrapper->contents_like(
+        qr/12: \s* for\ my\ \$q\ \(1\ \.\.\ 10\)\ \{/msx,
+        "/pat/ command is working and found a match.",
     );
 }
 

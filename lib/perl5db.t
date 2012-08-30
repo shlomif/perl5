@@ -28,7 +28,7 @@ BEGIN {
     }
 }
 
-plan(37);
+plan(38);
 
 my $rc_filename = '.perldb';
 
@@ -1018,6 +1018,36 @@ package main;
             $line_out
         /msx,
         'Test the "." command',
+    );
+}
+
+# Testing that the f command works.
+{
+    my $wrapper = DebugWrap->new(
+        {
+            cmds =>
+            [
+                'f ../lib/perl5db/t/MyModule.pm',
+                'b 12',
+                'c',
+                q/do { use IO::Handle; STDOUT->autoflush(1); print "Var=$var\n"; }/,
+                'c',
+                'q',
+            ],
+            include_t => 1,
+            prog => '../lib/perl5db/t/filename-line-breakpoint'
+        }
+    );
+
+    $wrapper->output_like(qr/
+        ^Var=Bar$
+            .*
+        ^In\ MyModule\.$
+            .*
+        ^In\ Main\ File\.$
+            .*
+        /msx,
+        "f command is working.",
     );
 }
 

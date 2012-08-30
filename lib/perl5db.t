@@ -28,7 +28,7 @@ BEGIN {
     }
 }
 
-plan(39);
+plan(40);
 
 my $rc_filename = '.perldb';
 
@@ -1057,9 +1057,7 @@ package main;
 #
 # TODO :
 #
-# 1. Fix the ?pattern? command too.
-#
-# 2. Go over the rest of the "eval"s in lib/perl5db.t and see if they cause
+# 1. Go over the rest of the "eval"s in lib/perl5db.t and see if they cause
 # problems.
 {
     my $wrapper = DebugWrap->new(
@@ -1076,6 +1074,26 @@ package main;
     $wrapper->contents_like(
         qr/12: \s* for\ my\ \$q\ \(1\ \.\.\ 10\)\ \{/msx,
         "/pat/ command is working and found a match.",
+    );
+}
+
+{
+    my $wrapper = DebugWrap->new(
+        {
+            cmds =>
+            [
+                'b 22',
+                'c',
+                '?for?',
+                'q',
+            ],
+            prog => '../lib/perl5db/t/eval-line-bug',
+        }
+    );
+
+    $wrapper->contents_like(
+        qr/12: \s* for\ my\ \$q\ \(1\ \.\.\ 10\)\ \{/msx,
+        "?pat? command is working and found a match.",
     );
 }
 

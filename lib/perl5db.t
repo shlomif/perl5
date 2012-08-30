@@ -367,7 +367,7 @@ sub _run {
         ::runperl(
             switches =>
             [
-                '-d', 
+                '-d',
                 ($self->_include_t ? ('-I', '../lib/perl5db/t') : ())
             ],
             stderr => 1,
@@ -689,11 +689,11 @@ package main;
             "'" . quotemeta($prog_fn) . "' line %s\\n",
             (map { quotemeta($_) } @$_)
             )
-        } 
+        }
         (
             ['.', 'main::baz', 14,],
             ['.', 'main::bar', 9,],
-            ['.', 'main::foo', 6]
+            ['.', 'main::foo', 6],
         )
     );
     $wrapper->contents_like(

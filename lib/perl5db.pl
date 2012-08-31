@@ -5836,7 +5836,7 @@ sub dump_trace {
     # quit.
     # Up the stack frame index to go back one more level each time.
     for (
-        my $i = $skip;
+        my $i = $skip ;
         $i < $count
         and ( $p, $file, $line, $sub, $h, $context, $e, $r ) = caller($i) ;
         $i++

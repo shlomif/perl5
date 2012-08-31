@@ -1756,7 +1756,7 @@ sub DB {
                 # If there's any call stack in place, turn off single
                 # stepping into subs throughout the stack.
             for my $i (0 .. $stack_depth) {
-                $stack[ $i++ ] &= ~1;
+                $stack[ $i ] &= ~1;
             }
 
             # And we are now no longer in single-step mode.

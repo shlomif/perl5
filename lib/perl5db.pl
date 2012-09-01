@@ -508,6 +508,8 @@ where it has to go.
 
 =cut
 
+use Devel::Cover;
+
 package DB;
 
 use strict;

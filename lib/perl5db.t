@@ -28,7 +28,7 @@ BEGIN {
     }
 }
 
-plan(40);
+plan(41);
 
 my $rc_filename = '.perldb';
 
@@ -1097,6 +1097,32 @@ package main;
     );
 }
 
+# Test the L command.
+{
+    my $wrapper = DebugWrap->new(
+        {
+            cmds =>
+            [
+                'b 6',
+                'b 13 ($q == 5)',
+                'L',
+                'q',
+            ],
+            prog => '../lib/perl5db/t/eval-line-bug',
+        }
+    );
+
+    $wrapper->contents_like(
+        qr#
+        ^\S*?eval-line-bug:\n
+        \s*6:\s*my\ \$i\ =\ 5;\n
+        \s*break\ if\ \(1\)\n
+        \s*13:\s*\$i\ \+=\ \$q;\n
+        \s*break\ if\ \(\(\$q\ ==\ 5\)\)\n
+        #msx,
+        "L command is working fine",
+    );
+}
 END {
     1 while unlink ($rc_filename, $out_fn);
 }

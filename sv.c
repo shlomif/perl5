@@ -6507,10 +6507,21 @@ Perl_sv_len_utf8(pTHX_ register SV *const sv)
 	return mg_length(sv);
     else
     {
-	STRLEN len;
-	const U8 *s = (U8*)SvPV_const(sv, len);
+	SvGETMAGIC(sv);
+	return sv_len_utf8_nomg(sv);
+    }
+}
 
-	if (PL_utf8cache) {
+STRLEN
+Perl_sv_len_utf8_nomg(pTHX_ SV * const sv)
+{
+    dVAR;
+    STRLEN len;
+    const U8 *s = (U8*)SvPV_nomg_const(sv, len);
+
+    PERL_ARGS_ASSERT_SV_LEN_UTF8_NOMG;
+
+    if (PL_utf8cache) {
 	    STRLEN ulen;
 	    MAGIC *mg = SvMAGICAL(sv) ? mg_find(sv, PERL_MAGIC_utf8) : NULL;
 
@@ -6536,9 +6547,8 @@ Perl_sv_len_utf8(pTHX_ register SV *const sv)
 		utf8_mg_len_cache_update(sv, &mg, ulen);
 	    }
 	    return ulen;
-	}
-	return Perl_utf8_length(aTHX_ s, s + len);
     }
+    return Perl_utf8_length(aTHX_ s, s + len);
 }
 
 /* Walk forwards to find the byte corresponding to the passed in UTF-8
@@ -10507,16 +10517,16 @@ Perl_sv_vcatpvfn_flags(pTHX_ SV *const sv, const char *const pat, const STRLEN p
 		if (DO_UTF8(argsv)) {
 		    STRLEN old_precis = precis;
 		    if (has_precis && precis < elen) {
-			STRLEN ulen = sv_len_utf8(argsv);
-			I32 p = precis > ulen ? ulen : precis;
-			sv_pos_u2b(argsv, &p, 0); /* sticks at end */
-			precis = p;
+			STRLEN ulen = sv_len_utf8_nomg(argsv);
+			STRLEN p = precis > ulen ? ulen : precis;
+			precis = sv_pos_u2b_flags(argsv, p, 0, 0);
+							/* sticks at end */
 		    }
 		    if (width) { /* fudge width (can't fudge elen) */
 			if (has_precis && precis < elen)
 			    width += precis - old_precis;
 			else
-			    width += elen - sv_len_utf8(argsv);
+			    width += elen - sv_len_utf8_nomg(argsv);
 		    }
 		    is_utf8 = TRUE;
 		}

@@ -213,6 +213,10 @@ Perl_mg_get(pTHX_ SV *sv)
 	    if (mg->mg_flags & MGf_GSKIP)
 		(SSPTR(mgs_ix, MGS *))->mgs_magical = 0;
 	}
+	else if (vtbl == &PL_vtbl_utf8) {
+	    /* get-magic can reallocate the PV */
+	    magic_setutf8(sv, mg);
+	}
 
 	mg = nextmg;
 
@@ -2162,7 +2166,7 @@ Perl_magic_setpos(pTHX_ SV *sv, MAGIC *mg)
     pos = SvIV(sv);
 
     if (DO_UTF8(lsv)) {
-	ulen = sv_len_utf8(lsv);
+	ulen = sv_len_utf8_nomg(lsv);
 	if (ulen)
 	    len = ulen;
     }
@@ -2176,9 +2180,7 @@ Perl_magic_setpos(pTHX_ SV *sv, MAGIC *mg)
 	pos = len;
 
     if (ulen) {
-	I32 p = pos;
-	sv_pos_u2b(lsv, &p, 0);
-	pos = p;
+	pos = sv_pos_u2b_flags(lsv, pos, 0, 0);
     }
 
     found->mg_len = pos;
@@ -2202,7 +2204,7 @@ Perl_magic_getsubstr(pTHX_ SV *sv, MAGIC *mg)
     PERL_UNUSED_ARG(mg);
 
     if (!translate_substr_offsets(
-	    SvUTF8(lsv) ? sv_len_utf8(lsv) : len,
+	    SvUTF8(lsv) ? sv_len_utf8_nomg(lsv) : len,
 	    negoff ? -(IV)offs : (IV)offs, !negoff,
 	    negrem ? -(IV)rem  : (IV)rem,  !negrem, &offs, &rem
     )) {
@@ -2239,7 +2241,7 @@ Perl_magic_setsubstr(pTHX_ SV *sv, MAGIC *mg)
 	Perl_ck_warner(aTHX_ packWARN(WARN_SUBSTR),
 			    "Attempt to use reference as lvalue in substr"
 	);
-    if (SvUTF8(lsv)) lsv_len = sv_len_utf8(lsv);
+    if (SvUTF8(lsv)) lsv_len = sv_len_utf8_nomg(lsv);
     else (void)SvPV_nomg(lsv,lsv_len);
     if (!translate_substr_offsets(
 	    lsv_len,

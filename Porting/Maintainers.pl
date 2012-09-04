@@ -2122,7 +2122,7 @@ use File::Glob qw(:case);
 
     'XSLoader' => {
         'MAINTAINER'   => 'saper',
-        'DISTRIBUTION' => 'SAPER/XSLoader-0.15.tar.gz',
+        'DISTRIBUTION' => 'SAPER/XSLoader-0.16.tar.gz',
         'FILES'        => q[dist/XSLoader],
         'EXCLUDED'     => [
             qr{^eg/},
@@ -2132,7 +2132,8 @@ use File::Glob qw(:case);
                 ),
             'XSLoader.pm',    # we use XSLoader_pm.PL
         ],
-        'UPSTREAM' => 'blead',
+        # Revert UPSTREAM to 'blead' after 0.17 is released
+        'UPSTREAM' => undef,
     },
 
     's2p' => {

@@ -28,7 +28,7 @@ BEGIN {
     }
 }
 
-plan(41);
+plan(43);
 
 my $rc_filename = '.perldb';
 
@@ -1120,9 +1120,59 @@ package main;
         \s*13:\s*\$i\ \+=\ \$q;\n
         \s*break\ if\ \(\(\$q\ ==\ 5\)\)\n
         #msx,
-        "L command is working fine",
+        "L command is listing breakpoints",
     );
 }
+
+# Test the L command for watch expressions.
+{
+    my $wrapper = DebugWrap->new(
+        {
+            cmds =>
+            [
+                'w (5+6)',
+                'L',
+                'q',
+            ],
+            prog => '../lib/perl5db/t/eval-line-bug',
+        }
+    );
+
+    $wrapper->contents_like(
+        qr#
+        ^Watch-expressions:\n
+        \s*\(5\+6\)\n
+        #msx,
+        "L command is listing watch expressions",
+    );
+}
+
+{
+    my $wrapper = DebugWrap->new(
+        {
+            cmds =>
+            [
+                'w (5+6)',
+                'w (11*23)',
+                'W (5+6)',
+                'L',
+                'q',
+            ],
+            prog => '../lib/perl5db/t/eval-line-bug',
+        }
+    );
+
+    $wrapper->contents_like(
+        qr#
+        ^Watch-expressions:\n
+        \s*\(11\*23\)\n
+        ^auto\(
+        #msx,
+        "L command is not listing deleted watch expressions",
+    );
+}
+
+
 END {
     1 while unlink ($rc_filename, $out_fn);
 }

@@ -28,7 +28,7 @@ BEGIN {
     }
 }
 
-plan(43);
+plan(44);
 
 my $rc_filename = '.perldb';
 
@@ -1172,6 +1172,32 @@ package main;
     );
 }
 
+# Test the L command.
+{
+    my $wrapper = DebugWrap->new(
+        {
+            cmds =>
+            [
+                'b 6',
+                'a 13 print $i',
+                'L',
+                'q',
+            ],
+            prog => '../lib/perl5db/t/eval-line-bug',
+        }
+    );
+
+    $wrapper->contents_like(
+        qr#
+        ^\S*?eval-line-bug:\n
+        \s*6:\s*my\ \$i\ =\ 5;\n
+        \s*break\ if\ \(1\)\n
+        \s*13:\s*\$i\ \+=\ \$q;\n
+        \s*action:\s+print\ \$i\n
+        #msx,
+        "L command is listing actions and breakpoints",
+    );
+}
 
 END {
     1 while unlink ($rc_filename, $out_fn);

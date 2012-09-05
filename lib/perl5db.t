@@ -28,7 +28,7 @@ BEGIN {
     }
 }
 
-plan(48);
+plan(44);
 
 my $rc_filename = '.perldb';
 
@@ -393,13 +393,6 @@ sub contents_like {
 
     local $::Level = $::Level + 1;
     ::like($self->_contents(), $re, $msg);
-}
-
-sub contents_unlike {
-    my ($self, $re, $msg) = @_;
-
-    local $::Level = $::Level + 1;
-    ::unlike($self->_contents(), $re, $msg);
 }
 
 package main;
@@ -1203,77 +1196,6 @@ package main;
         \s*action:\s+print\ \$i\n
         #msx,
         "L command is listing actions and breakpoints",
-    );
-}
-
-{
-    my $wrapper = DebugWrap->new(
-        {
-            cmds =>
-            [
-                'S',
-                'q',
-            ],
-            prog =>  '../lib/perl5db/t/rt-104168',
-        }
-    );
-
-    $wrapper->contents_like(
-        qr#
-        ^main::bar\n
-        main::baz\n
-        main::foo\n
-        #msx,
-        "S command - 1",
-    );
-}
-
-{
-    my $wrapper = DebugWrap->new(
-        {
-            cmds =>
-            [
-                'S ^main::ba',
-                'q',
-            ],
-            prog =>  '../lib/perl5db/t/rt-104168',
-        }
-    );
-
-    $wrapper->contents_like(
-        qr#
-        ^main::bar\n
-        main::baz\n
-        auto\(
-        #msx,
-        "S command with regex",
-    );
-}
-
-{
-    my $wrapper = DebugWrap->new(
-        {
-            cmds =>
-            [
-                'S !^main::ba',
-                'q',
-            ],
-            prog =>  '../lib/perl5db/t/rt-104168',
-        }
-    );
-
-    $wrapper->contents_unlike(
-        qr#
-        ^main::ba
-        #msx,
-        "S command with negative regex",
-    );
-
-    $wrapper->contents_like(
-        qr#
-        ^main::foo\n
-        #msx,
-        "S command with negative regex - what it still matches",
     );
 }
 

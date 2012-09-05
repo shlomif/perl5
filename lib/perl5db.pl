@@ -2002,9 +2002,7 @@ number information, and print that.
 
             # Scan forward, stopping at either the end or the next
             # unbreakable line.
-            {
-                my $i = $line + 1;
-                while ( $i <= $max && $dbline[$i] == 0 )
+            for ( my $i = $line + 1 ; $i <= $max && $dbline[$i] == 0 ; ++$i )
             {    #{ vi
 
                 # Drop out on null statements, block closers, and comments.
@@ -2029,12 +2027,7 @@ number information, and print that.
                 else {
                     depth_print_lineinfo($explicit_stop, $incr_pos);
                 }
-            }
-            continue
-            {
-                $i++;
-            }## end while ($i = $line + 1 ; $i...
-            }
+            } ## end for ($i = $line + 1 ; $i...
         } ## end else [ if ($slave_editor)
     } ## end if ($single || ($trace...
 
@@ -2969,9 +2962,6 @@ If a command is found, it is placed in C<$cmd> and executed via C<redo>.
                         # Stop if we find it.
                         last if $hist[$i] =~ /$pat/;
                     }
-                    continue {
-                        $i--;
-                    }
 
                     if ( !$i ) {
 
@@ -3043,15 +3033,11 @@ Prints the contents of C<@hist> (if any).
                     # Start at the end of the array.
                     # Stay in while we're still above the ending value.
                     # Tick back by one each time around the loop.
-                    $i = $#hist;
-                    while ( $i > $end ) {
+                    for ( $i = $#hist ; $i > $end ; $i-- ) {
 
                         # Print the command  unless it has no arguments.
                         print $OUT "$i: ", $hist[$i], "\n"
                           unless $hist[$i] =~ /^.?$/;
-                    }
-                    continue {
-                        $i--;
                     }
                     next CMD;
                 };
@@ -5065,7 +5051,7 @@ sub cmd_l {
         # - whether a line has a break or not
         # - whether a line has an action or not
         else {
-            while ($i <= $end) {
+            for ( ; $i <= $end ; $i++ ) {
 
                 # Check for breakpoints and actions.
                 my ( $stop, $action );
@@ -5088,10 +5074,7 @@ sub cmd_l {
 
                 # Move on to the next line. Drop out on an interrupt.
                 $i++, last if $signal;
-            }
-            continue {
-                $i++;
-            }## end while (; $i <= $end ; $i++)
+            } ## end for (; $i <= $end ; $i++)
 
             # Line the prompt up; print a newline if the last line listed
             # didn't have a newline.
@@ -5852,9 +5835,8 @@ sub dump_trace {
     # number of stack frames, or we run out - caller() returns nothing - we
     # quit.
     # Up the stack frame index to go back one more level each time.
-    {
-        my $i = $skip;
-    while (
+    for (
+        my $i = $skip ;
         $i < $count
         and ( $p, $file, $line, $sub, $h, $context, $e, $r ) = caller($i) ;
         $i++
@@ -5944,11 +5926,7 @@ sub dump_trace {
 
         # Stop processing frames if the user hit control-C.
         last if $signal;
-    } ## end while ($i)
-    continue {
-        $i++;
-    }
-    }
+    } ## end for ($i = $skip ; $i < ...
 
     # Restore the trace value again.
     $trace = $otrace;

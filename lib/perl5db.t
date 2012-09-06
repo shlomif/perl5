@@ -28,7 +28,7 @@ BEGIN {
     }
 }
 
-plan(48);
+plan(49);
 
 my $rc_filename = '.perldb';
 
@@ -1277,6 +1277,28 @@ package main;
     );
 }
 
+# Test the a command.
+{
+    my $wrapper = DebugWrap->new(
+        {
+            cmds =>
+            [
+                'a 13 print "\nVar<Q>=$q\n"',
+                'c',
+                'q',
+            ],
+            prog => '../lib/perl5db/t/eval-line-bug',
+        }
+    );
+
+    $wrapper->output_like(qr#
+        \nVar<Q>=1\n
+        \nVar<Q>=2\n
+        \nVar<Q>=3\n
+        #msx,
+        "a command is working",
+    );
+}
 END {
     1 while unlink ($rc_filename, $out_fn);
 }

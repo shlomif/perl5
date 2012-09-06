@@ -1804,27 +1804,33 @@ sub DB {
     $max = $#dbline;
 
     # if we have something here, see if we should break.
-    if ( $dbline{$line}
-        && _is_breakpoint_enabled($filename, $line)
-        && ( my ( $stop, $action ) = split( /\0/, $dbline{$line} ) ) )
     {
+        # $stop is lexical and local to this block - $action on the other hand
+        # is global.
+        my $stop;
 
-        # Stop if the stop criterion says to just stop.
-        if ( $stop eq '1' ) {
-            $signal |= 1;
-        }
+        if ( $dbline{$line}
+            && _is_breakpoint_enabled($filename, $line)
+            && (( $stop, $action ) = split( /\0/, $dbline{$line} ) ) )
+        {
 
-        # It's a conditional stop; eval it in the user's context and
-        # see if we should stop. If so, remove the one-time sigil.
-        elsif ($stop) {
-            $evalarg = "\$DB::signal |= 1 if do {$stop}";
-            &eval;
-            # If the breakpoint is temporary, then delete its enabled status.
-            if ($dbline{$line} =~ s/;9($|\0)/$1/) {
-                _cancel_breakpoint_temp_enabled_status($filename, $line);
+            # Stop if the stop criterion says to just stop.
+            if ( $stop eq '1' ) {
+                $signal |= 1;
             }
-        }
-    } ## end if ($dbline{$line} && ...
+
+            # It's a conditional stop; eval it in the user's context and
+            # see if we should stop. If so, remove the one-time sigil.
+            elsif ($stop) {
+                $evalarg = "\$DB::signal |= 1 if do {$stop}";
+                &eval;
+                # If the breakpoint is temporary, then delete its enabled status.
+                if ($dbline{$line} =~ s/;9($|\0)/$1/) {
+                    _cancel_breakpoint_temp_enabled_status($filename, $line);
+                }
+            }
+        } ## end if ($dbline{$line} && ...
+    }
 
     # Preserve the current stop-or-not, and see if any of the W
     # (watch expressions) has changed.
@@ -3985,6 +3991,8 @@ sub cmd_a {
 
                 # Add the action to the line.
                 $dbline{$lineno} .= "\0" . action($expr);
+
+                _set_breakpoint_enabled_status($filename, $lineno, 1);
             }
         } ## end if (length $expr)
     } ## end if ($line =~ /^\s*(\d*)\s*(\S.+)/)

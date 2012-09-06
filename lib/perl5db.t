@@ -28,7 +28,7 @@ BEGIN {
     }
 }
 
-plan(49);
+plan(50);
 
 my $rc_filename = '.perldb';
 
@@ -1299,6 +1299,28 @@ package main;
         "a command is working",
     );
 }
+
+# Test the 'A' command
+{
+    my $wrapper = DebugWrap->new(
+        {
+            cmds =>
+            [
+                'a 13 print "\nVar<Q>=$q\n"',
+                'A 13',
+                'c',
+                'q',
+            ],
+            prog => '../lib/perl5db/t/eval-line-bug',
+        }
+    );
+
+    $wrapper->output_like(
+        qr#\A\z#, # The empty string.
+        "A command (for removing actions) is working",
+    );
+}
+
 END {
     1 while unlink ($rc_filename, $out_fn);
 }

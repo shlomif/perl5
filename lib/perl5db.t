@@ -28,7 +28,7 @@ BEGIN {
     }
 }
 
-plan(50);
+plan(51);
 
 my $rc_filename = '.perldb';
 
@@ -1316,8 +1316,30 @@ package main;
     );
 
     $wrapper->output_like(
-        qr#\A\z#, # The empty string.
+        qr#\A\z#msx, # The empty string.
         "A command (for removing actions) is working",
+    );
+}
+
+# Test the 'A *' command
+{
+    my $wrapper = DebugWrap->new(
+        {
+            cmds =>
+            [
+                'a 6 print "\nFail!\n"',
+                'a 13 print "\nVar<Q>=$q\n"',
+                'A *',
+                'c',
+                'q',
+            ],
+            prog => '../lib/perl5db/t/eval-line-bug',
+        }
+    );
+
+    $wrapper->output_like(
+        qr#\A\z#msx, # The empty string.
+        "'A *' command (for removing all actions) is working",
     );
 }
 

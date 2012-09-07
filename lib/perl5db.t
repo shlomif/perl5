@@ -28,7 +28,7 @@ BEGIN {
     }
 }
 
-plan(51);
+plan(53);
 
 my $rc_filename = '.perldb';
 
@@ -1343,6 +1343,35 @@ package main;
     );
 }
 
+{
+    my $wrapper = DebugWrap->new(
+        {
+            cmds =>
+            [
+                'n',
+                'w $foo',
+                'c',
+                'print "\nIDX=<$idx>\n"',
+                'q',
+            ],
+            prog => '../lib/perl5db/t/test-w-statement-1',
+        }
+    );
+
+
+    $wrapper->contents_like(qr#
+        \$foo\ changed:\n
+        \s+old\ value:\s+'1'\n
+        \s+new\ value:\s+'2'\n
+        #msx,
+        'w command - watchpoint changed',
+    );
+    $wrapper->output_like(qr#
+        \nIDX=<20>\n
+        #msx,
+        "w command - correct output from IDX",
+    );
+}
 END {
     1 while unlink ($rc_filename, $out_fn);
 }

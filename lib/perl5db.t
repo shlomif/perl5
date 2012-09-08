@@ -28,7 +28,7 @@ BEGIN {
     }
 }
 
-plan(65);
+plan(67);
 
 my $rc_filename = '.perldb';
 
@@ -1502,6 +1502,35 @@ package main;
         ^\s*hashDepth\ =\ 'N/A'\n
         #msx,
         q#"o" query command displays hashDepth#,
+    );
+}
+
+# Test the 'o' set command.
+{
+    my $wrapper = DebugWrap->new(
+        {
+            cmds =>
+            [
+                'o signalLevel=0',
+                'o',
+                'q',
+            ],
+            prog => '../lib/perl5db/t/test-w-statement-1',
+        }
+    );
+
+    $wrapper->contents_like(qr/
+        ^\s*(signalLevel\ =\ '0'\n)
+        .*?
+        ^\s*\1
+        /msx,
+        q#o set command works#,
+    );
+
+    $wrapper->contents_like(qr#
+        ^\s*hashDepth\ =\ 'N/A'\n
+        #msx,
+        q#o set command - hashDepth#,
     );
 }
 

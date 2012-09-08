@@ -28,7 +28,7 @@ BEGIN {
     }
 }
 
-plan(57);
+plan(61);
 
 my $rc_filename = '.perldb';
 
@@ -1430,6 +1430,44 @@ package main;
         \nIDX=<>\n
         #msx,
         '"W *" command - stopped at end.',
+    );
+}
+
+# Test the 'o' command (without further arguments
+{
+    my $wrapper = DebugWrap->new(
+        {
+            cmds =>
+            [
+                'o',
+                'q',
+            ],
+            prog => '../lib/perl5db/t/test-w-statement-1',
+        }
+    );
+
+    $wrapper->contents_like(qr#
+        ^\s*warnLevel\ =\ '1'\n
+        #msx,
+        q#"o" command (without arguments) displays warnLevel#,
+    );
+
+    $wrapper->contents_like(qr#
+        ^\s*signalLevel\ =\ '1'\n
+        #msx,
+        q#"o" command (without arguments) displays signalLevel#,
+    );
+
+    $wrapper->contents_like(qr#
+        ^\s*dieLevel\ =\ '1'\n
+        #msx,
+        q#"o" command (without arguments) displays dieLevel#,
+    );
+
+    $wrapper->contents_like(qr#
+        ^\s*hashDepth\ =\ 'N/A'\n
+        #msx,
+        q#"o" command (without arguments) displays hashDepth#,
     );
 }
 

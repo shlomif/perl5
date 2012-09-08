@@ -28,7 +28,7 @@ BEGIN {
     }
 }
 
-plan(67);
+plan(69);
 
 my $rc_filename = '.perldb';
 
@@ -1531,6 +1531,36 @@ package main;
         ^\s*hashDepth\ =\ 'N/A'\n
         #msx,
         q#o set command - hashDepth#,
+    );
+}
+
+# Test the '<' and "< ?" commands.
+{
+    my $wrapper = DebugWrap->new(
+        {
+            cmds =>
+            [
+                q/< print "\nX=<$x>\n"/,
+                q/b 7/,
+                q/< ?/,
+                'c',
+                'q',
+            ],
+            prog => '../lib/perl5db/t/disable-breakpoints-1',
+        }
+    );
+
+    $wrapper->contents_like(qr/
+        ^pre-perl\ commands:\n
+        \s*<\ --\ print\ "\\nX=<\$x>\\n"\n
+        /msx,
+        q#Test < and < ? commands - contents.#,
+    );
+
+    $wrapper->output_like(qr#
+        ^X=<FirstVal>\n
+        #msx,
+        q#Test < and < ? commands - output.#,
     );
 }
 

@@ -28,7 +28,7 @@ BEGIN {
     }
 }
 
-plan(55);
+plan(57);
 
 my $rc_filename = '.perldb';
 
@@ -1399,6 +1399,37 @@ package main;
         \nIDX=<>\n
         #msx,
         "W command - stopped at end.",
+    );
+}
+
+# Test the W * command.
+{
+    my $wrapper = DebugWrap->new(
+        {
+            cmds =>
+            [
+                'n',
+                'w $foo',
+                'w ($foo*$foo)',
+                'W *',
+                'c',
+                'print "\nIDX=<$idx>\n"',
+                'q',
+            ],
+            prog => '../lib/perl5db/t/test-w-statement-1',
+        }
+    );
+
+    $wrapper->contents_unlike(qr#
+        \$foo\ changed:
+        #msx,
+        '"W *" command - watchpoint was deleted',
+    );
+
+    $wrapper->output_like(qr#
+        \nIDX=<>\n
+        #msx,
+        '"W *" command - stopped at end.',
     );
 }
 

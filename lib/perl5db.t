@@ -28,7 +28,7 @@ BEGIN {
     }
 }
 
-plan(69);
+plan(70);
 
 my $rc_filename = '.perldb';
 
@@ -386,6 +386,13 @@ sub output_like {
 
     local $::Level = $::Level + 1;
     ::like($self->_output(), $re, $msg);
+}
+
+sub output_unlike {
+    my ($self, $re, $msg) = @_;
+
+    local $::Level = $::Level + 1;
+    ::unlike($self->_output(), $re, $msg);
 }
 
 sub contents_like {
@@ -1561,6 +1568,27 @@ package main;
         ^X=<FirstVal>\n
         #msx,
         q#Test < and < ? commands - output.#,
+    );
+}
+
+# Test the '< *' command.
+{
+    my $wrapper = DebugWrap->new(
+        {
+            cmds =>
+            [
+                q/< print "\nX=<$x>\n"/,
+                q/b 7/,
+                q/< */,
+                'c',
+                'q',
+            ],
+            prog => '../lib/perl5db/t/disable-breakpoints-1',
+        }
+    );
+
+    $wrapper->output_unlike(qr/FirstVal/,
+        q#Test the '< *' command.#,
     );
 }
 

@@ -28,7 +28,7 @@ BEGIN {
     }
 }
 
-plan(61);
+plan(65);
 
 my $rc_filename = '.perldb';
 
@@ -1433,7 +1433,7 @@ package main;
     );
 }
 
-# Test the 'o' command (without further arguments
+# Test the 'o' command (without further arguments).
 {
     my $wrapper = DebugWrap->new(
         {
@@ -1468,6 +1468,40 @@ package main;
         ^\s*hashDepth\ =\ 'N/A'\n
         #msx,
         q#"o" command (without arguments) displays hashDepth#,
+    );
+}
+
+# Test the 'o' query command.
+{
+    my $wrapper = DebugWrap->new(
+        {
+            cmds =>
+            [
+                'o hashDepth? signalLevel?',
+                'q',
+            ],
+            prog => '../lib/perl5db/t/test-w-statement-1',
+        }
+    );
+
+    $wrapper->contents_unlike(qr#warnLevel#,
+        q#"o" query command does not display warnLevel#,
+    );
+
+    $wrapper->contents_like(qr#
+        ^\s*signalLevel\ =\ '1'\n
+        #msx,
+        q#"o" query command displays signalLevel#,
+    );
+
+    $wrapper->contents_unlike(qr#dieLevel#,
+        q#"o" query command does not display dieLevel#,
+    );
+
+    $wrapper->contents_like(qr#
+        ^\s*hashDepth\ =\ 'N/A'\n
+        #msx,
+        q#"o" query command displays hashDepth#,
     );
 }
 

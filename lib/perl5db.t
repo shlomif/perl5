@@ -28,7 +28,7 @@ BEGIN {
     }
 }
 
-plan(70);
+plan(72);
 
 my $rc_filename = '.perldb';
 
@@ -1589,6 +1589,37 @@ package main;
 
     $wrapper->output_unlike(qr/FirstVal/,
         q#Test the '< *' command.#,
+    );
+}
+
+# Test the '>' and "> ?" commands.
+{
+    my $wrapper = DebugWrap->new(
+        {
+            cmds =>
+            [
+                q/$::foo = 500;/,
+                q/> print "\nFOO=<$::foo>\n"/,
+                q/b 7/,
+                q/> ?/,
+                'c',
+                'q',
+            ],
+            prog => '../lib/perl5db/t/disable-breakpoints-1',
+        }
+    );
+
+    $wrapper->contents_like(qr/
+        ^post-perl\ commands:\n
+        \s*>\ --\ print\ "\\nFOO=<\$::foo>\\n"\n
+        /msx,
+        q#Test > and > ? commands - contents.#,
+    );
+
+    $wrapper->output_like(qr#
+        ^FOO=<500>\n
+        #msx,
+        q#Test > and > ? commands - output.#,
     );
 }
 

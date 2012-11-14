@@ -5841,6 +5841,7 @@ sub cmd_L {
             }
         } ## end for $file (keys %postponed_file)
     } ## end if (@have and ($break_wanted...
+
     if ( %break_on_load and $break_wanted ) {
         print {$OUT} "Breakpoints on load:\n";
         BREAK_ON_LOAD: for my $filename ( keys %break_on_load ) {
@@ -5848,6 +5849,7 @@ sub cmd_L {
             last BREAK_ON_LOAD if $signal;
         }
     } ## end if (%break_on_load and...
+
     if ($watch_wanted and ( $trace & 2 )) {
         print {$OUT} "Watch-expressions:\n" if @to_watch;
         TO_WATCH: for my $expr (@to_watch) {
@@ -5855,6 +5857,8 @@ sub cmd_L {
             last TO_WATCH if $signal;
         }
     }
+
+    return;
 } ## end sub cmd_L
 
 =head3 C<cmd_M> - list modules (command)

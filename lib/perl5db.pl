@@ -5491,7 +5491,6 @@ sub _cmd_l_handle_var_name {
 }
 
 sub _cmd_l_handle_subname {
-    my $line = shift;
 
     my $s = $subname;
 
@@ -5676,7 +5675,7 @@ sub _cmd_l_main {
     }
     # l name. Try to find a sub by that name.
     elsif ( ($subname) = $spec =~ /\A([\':A-Za-z_][\':\w]*(?:\[.*\])?)/s ) {
-        return _cmd_l_handle_subname($spec);
+        return _cmd_l_handle_subname();
     }
     # Bare 'l' command.
     elsif ( $spec !~ /\S/ ) {

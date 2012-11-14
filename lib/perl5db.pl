@@ -5542,7 +5542,6 @@ sub _cmd_l_handle_subname {
         }
 
         # Call self recursively to list the range.
-        $line = $subrange;
         return _cmd_l_main( $subrange );
     } ## end if ($subrange)
 

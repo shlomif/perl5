@@ -1437,6 +1437,12 @@ Sort an array. Here is an example:
 Currently this always uses mergesort. See sortsv_flags for a more
 flexible routine.
 
+Perl equivalent:
+
+    @arr[0 .. $num_elts-1]
+        = ( sort { cmp($a,$b) }
+        @arr[0 .. $num_elts-1] )
+
 =cut
 */
 

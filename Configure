@@ -2787,6 +2787,9 @@ esac
 
 : Check for Cross-Compilation
 case "$usecrosscompile" in
+emccdefault)
+        true
+        ;;
 $define|true|[yY]*)
 	$echo "Cross-compiling..."
         croak=''

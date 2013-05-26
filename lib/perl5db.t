@@ -829,7 +829,7 @@ sub _calc_trace_wrapper
 
     $wrapper->contents_like(
         # qr/^0\s+HASH\([^\)]+\)\n\s+500 => 600\n/,
-        qr/Arg1.*?Capsula.*GreekHumor.*Socrates/ms,
+        qr/Arg1.*^1\s+'Capsula'\n2\s+'GreekHumor'\n3\s+'Socrates'/ms,
         q/x command test with '@_'./,
     );
 }

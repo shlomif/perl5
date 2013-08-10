@@ -6143,7 +6143,11 @@ sub print_lineinfo {
     resetterm(1) if $LINEINFO eq $OUT and $term_pid != $$;
     local $\ = '';
     local $, = '';
-    print $LINEINFO @_;
+    # $LINEINFO may be undef if $noTTY is set or some other issue.
+    if ($LINEINFO)
+    {
+        print {$LINEINFO} @_;
+    }
 } ## end sub print_lineinfo
 
 =head2 C<postponed_sub>

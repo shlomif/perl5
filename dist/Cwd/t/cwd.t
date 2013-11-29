@@ -36,11 +36,11 @@ if ($IsVMS) {
     $vms_mode = 0 if ($vms_unix_rpt);
 }
 
-my $tests = 31;
+my $tests = 32;
 # _perl_abs_path() currently only works when the directory separator
 # is '/', so don't test it when it won't work.
 my $EXTRA_ABSPATH_TESTS = ($Config{prefix} =~ m/\//) && $^O ne 'cygwin';
-$tests += 4 if $EXTRA_ABSPATH_TESTS;
+$tests += 5 if $EXTRA_ABSPATH_TESTS;
 plan tests => $tests;
 
 SKIP: {
@@ -225,7 +225,27 @@ path_ends_with(Cwd::fast_abs_path($path), 'cwd.t', 'fast_abs_path() can be invok
 path_ends_with(Cwd::_perl_abs_path($path), 'cwd.t', '_perl_abs_path() can be invoked on a file')
   if $EXTRA_ABSPATH_TESTS;
 
+{
+    mkdir("existing-dir", 0777);
+    my $path = File::Spec->catfile(
+        File::Spec->curdir(), 'existing-dir', "non-existent-file.txt"
+    );
+    path_ends_with(
+        Cwd::abs_path($path),
+        'non-existent-file.txt',
+        'abs_path() can be invoked on a non-exist file in an existing dir'
+    );
+    if ($EXTRA_ABSPATH_TESTS)
+    {
+        path_ends_with(
+            Cwd::_perl_abs_path($path),
+            'non-existent-file.txt',
+            '_perl_abs_path() can be invoked on a non-exist file in an existing dir'
+        );
+    }
 
+    rmdir("existing-dir");
+}
   
 SKIP: {
   my $file;

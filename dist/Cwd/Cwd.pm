@@ -171,7 +171,7 @@ use strict;
 use Exporter;
 use vars qw(@ISA @EXPORT @EXPORT_OK $VERSION);
 
-$VERSION = '3.45';
+$VERSION = '3.46';
 my $xs_version = $VERSION;
 $VERSION =~ tr/_//;
 
@@ -541,19 +541,26 @@ sub chdir {
 sub _perl_abs_path
 {
     my $start = @_ ? shift : '.';
-    my($dotdots, $cwd, @pst, @cst, $dir, @tst);
+    my($dotdots, $cwd, @pst, @cst, $dir, @tst, $file);
 
     unless (@cst = stat( $start ))
     {
-	_carp("stat($start): $!");
+	my $err = $!;
+	# Check for a non-existent file inside an existing directory.
+	if (($dir, $file) = $start =~ m{^(.*)/(.+)$}) {
+	    if (-d $dir) {
+		return abs_path($dir) . "/$file";
+	    }
+	}
+	_carp("stat($start): $err");
 	return '';
     }
 
     unless (-d _) {
         # Make sure we can be invoked on plain files, not just directories.
         # NOTE that this routine assumes that '/' is the only directory separator.
-	
-        my ($dir, $file) = $start =~ m{^(.*)/(.+)$}
+
+        ($dir, $file) = $start =~ m{^(.*)/(.+)$}
 	    or return cwd() . '/' . $start;
 	
 	# Can't use "-l _" here, because the previous stat was a stat(), not an lstat().

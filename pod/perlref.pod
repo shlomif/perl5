@@ -75,11 +75,11 @@ there's already a reference to the variable in the symbol table.  But
 the symbol table reference might go away, and you'll still have the
 reference that the backslash returned.  Here are some examples:
 
-    $scalarref = \$foo;
-    $arrayref  = \@ARGV;
-    $hashref   = \%ENV;
-    $coderef   = \&handler;
-    $globref   = \*foo;
+    my $scalar_ref = \$foo;
+    my $array_ref  = \@ARGV;
+    my $hash_ref   = \%ENV;
+    my $code_ref   = \&handler;
+    my $glob_ref   = \*foo;
 
 It isn't possible to create a true reference to an IO handle (filehandle
 or dirhandle) using the backslash operator.  The most you can get is a
@@ -94,20 +94,20 @@ X<bracket, square> X<arrayref> X<array reference> X<reference, array>
 A reference to an anonymous array can be created using square
 brackets:
 
-    $arrayref = [1, 2, ['a', 'b', 'c']];
+    my $array_ref = [1, 2, ['a', 'b', 'c']];
 
 Here we've created a reference to an anonymous array of three elements
 whose final element is itself a reference to another anonymous array of three
 elements.  (The multidimensional syntax described later can be used to
-access this.  For example, after the above, C<< $arrayref->[2][1] >> would have
+access this.  For example, after the above, C<< $array_ref->[2][1] >> would have
 the value "b".)
 
 Taking a reference to an enumerated list is not the same
 as using square brackets--instead it's the same as creating
 a list of references!
 
-    @list = (\$a, \@b, \%c);
-    @list = \($a, @b, %c);	# same thing!
+    my @list = (\$scalar, \@arr, \%h);
+    my @list = \($scalar, @arr, %h);   # same thing!
 
 As a special case, C<\(@foo)> returns a list of references to the contents
 of C<@foo>, not a reference to C<@foo> itself.  Likewise for C<%foo>,
@@ -121,9 +121,9 @@ X<bracket, curly> X<brace> X<hashref> X<hash reference> X<reference, hash>
 A reference to an anonymous hash can be created using curly
 brackets:
 
-    $hashref = {
-	'Adam'  => 'Eve',
-	'Clyde' => 'Bonnie',
+    my $hash_ref = {
+        'Adam'  => 'Eve',
+        'Clyde' => 'Bonnie',
     };
 
 Anonymous hash and array composers like these can be intermixed freely to
@@ -143,16 +143,16 @@ hassle.
 For example, if you wanted a function to make a new hash and return a
 reference to it, you have these options:
 
-    sub hashem {        { @_ } }   # silently wrong
-    sub hashem {       +{ @_ } }   # ok
-    sub hashem { return { @_ } }   # ok
+    sub hash_em {        { @_ } }   # silently wrong
+    sub hash_em {       +{ @_ } }   # ok
+    sub hash_em { return { @_ } }   # ok
 
 On the other hand, if you want the other meaning, you can do this:
 
-    sub showem {        { @_ } }   # ambiguous (currently ok,
-                                   # but may change)
-    sub showem {       {; @_ } }   # ok
-    sub showem { { return @_ } }   # ok
+    sub show_em {        { @_ } }   # ambiguous (currently ok,
+                                    # but may change)
+    sub show_em {       {; @_ } }   # ok
+    sub show_em { { return @_ } }   # ok
 
 The leading C<+{> and C<{;> always serve to disambiguate
 the expression to mean either the HASH reference, or the BLOCK.
@@ -164,13 +164,13 @@ X<scope, lexical> X<closure> X<lexical> X<lexical scope>
 A reference to an anonymous subroutine can be created by using
 C<sub> without a subname:
 
-    $coderef = sub { print "Boink!\n" };
+    my $code_ref = sub { print "Boink!\n" };
 
 Note the semicolon.  Except for the code
 inside not being immediately executed, a C<sub {}> is not so much a
 declaration as it is an operator, like C<do{}> or C<eval{}>.  (However, no
 matter how many times you execute that particular line (unless you're in an
-C<eval("...")>), $coderef will still have a reference to the I<same>
+C<eval("...")>), $code_ref will still have a reference to the I<same>
 anonymous subroutine.)
 
 Anonymous subroutines act as closures with respect to my() variables,
@@ -190,11 +190,11 @@ template without using eval().  Here's a small example of how
 closures work:
 
     sub newprint {
-	my $x = shift;
-	return sub { my $y = shift; print "$x, $y!\n"; };
+        my $x = shift;
+        return sub { my $y = shift; print "$x, $y!\n"; };
     }
-    $h = newprint("Howdy");
-    $g = newprint("Greetings");
+    my $h = newprint("Howdy");
+    my $g = newprint("Greetings");
 
     # Time passes...
 
@@ -226,19 +226,19 @@ ordinary reference, and it remains an ordinary reference even while it's also
 being an object.  Constructors are often named C<new()>.  You I<can> call them
 indirectly:
 
-    $objref = new Doggie( Tail => 'short', Ears => 'long' );
+    my $obj_ref = new Doggie( Tail => 'short', Ears => 'long' );
 
 But that can produce ambiguous syntax in certain cases, so it's often
 better to use the direct method invocation approach:
 
-    $objref   = Doggie->new(Tail => 'short', Ears => 'long');
+    my $obj_ref   = Doggie->new(Tail => 'short', Ears => 'long');
 
     use Term::Cap;
-    $terminal = Term::Cap->Tgetent( { OSPEED => 9600 });
+    my $terminal = Term::Cap->Tgetent( { OSPEED => 9600 });
 
     use Tk;
-    $main    = MainWindow->new();
-    $menubar = $main->Frame(-relief              => "raised",
+    my $main    = MainWindow->new();
+    my $menubar = $main->Frame(-relief              => "raised",
                             -borderwidth         => 2)
 
 =item 6.
@@ -256,15 +256,15 @@ the *foo{THING} syntax.  *foo{THING} returns a reference to the THING
 slot in *foo (which is the symbol table entry which holds everything
 known as foo).
 
-    $scalarref = *foo{SCALAR};
-    $arrayref  = *ARGV{ARRAY};
-    $hashref   = *ENV{HASH};
-    $coderef   = *handler{CODE};
-    $ioref     = *STDIN{IO};
-    $globref   = *foo{GLOB};
-    $formatref = *foo{FORMAT};
-    $globname  = *foo{NAME};    # "foo"
-    $pkgname   = *foo{PACKAGE}; # "main"
+    my $scalar_ref = *foo{SCALAR};
+    my $array_ref  = *ARGV{ARRAY};
+    my $hash_ref   = *ENV{HASH};
+    my $code_ref   = *handler{CODE};
+    my $io_ref     = *STDIN{IO};
+    my $glob_ref   = *foo{GLOB};
+    my $format_ref = *foo{FORMAT};
+    my $glob_name  = *foo{NAME};    # "foo"
+    my $pkg_name   = *foo{PACKAGE}; # "main"
 
 Most of these are self-explanatory, but C<*foo{IO}>
 deserves special attention.  It returns
@@ -297,20 +297,20 @@ and directory handles, though.)  However, if you assign the incoming
 value to a scalar instead of a typeglob as we do in the examples
 below, there's no risk of that happening.
 
-    splutter(*STDOUT);		# pass the whole glob
-    splutter(*STDOUT{IO});	# pass both file and dir handles
+    splutter(*STDOUT);          # pass the whole glob
+    splutter(*STDOUT{IO});      # pass both file and dir handles
 
     sub splutter {
-	my $fh = shift;
-	print $fh "her um well a hmmm\n";
+        my $fh = shift;
+        print $fh "her um well a hmmm\n";
     }
 
-    $rec = get_rec(*STDIN);	# pass the whole glob
-    $rec = get_rec(*STDIN{IO}); # pass both file and dir handles
+    my $rec = get_rec(*STDIN);     # pass the whole glob
+    my $rec = get_rec(*STDIN{IO}); # pass both file and dir handles
 
     sub get_rec {
-	my $fh = shift;
-	return scalar <$fh>;
+        my $fh = shift;
+        return scalar <$fh>;
     }
 
 =back
@@ -330,22 +330,22 @@ Anywhere you'd put an identifier (or chain of identifiers) as part
 of a variable or subroutine name, you can replace the identifier with
 a simple scalar variable containing a reference of the correct type:
 
-    $bar = $$scalarref;
-    push(@$arrayref, $filename);
-    $$arrayref[0] = "January";
-    $$hashref{"KEY"} = "VALUE";
-    &$coderef(1,2,3);
-    print $globref "output\n";
+    my $bar = $$scalar_ref;
+    push(@$array_ref, $filename);
+    $$array_ref[0] = "January";
+    $$hash_ref{"KEY"} = "VALUE";
+    &$code_ref(1,2,3);
+    print $glob_ref "output\n";
 
 It's important to understand that we are specifically I<not> dereferencing
-C<$arrayref[0]> or C<$hashref{"KEY"}> there.  The dereference of the
+C<$array_ref[0]> or C<$hash_ref{"KEY"}> there.  The dereference of the
 scalar variable happens I<before> it does any key lookups.  Anything more
 complicated than a simple scalar variable must use methods 2 or 3 below.
 However, a "simple scalar" includes an identifier that itself uses method
 1 recursively.  Therefore, the following prints "howdy".
 
-    $refrefref = \\\"howdy";
-    print $$$$refrefref;
+    my $ref_ref_ref = \\\"howdy";
+    print $$$$ref_ref_ref;
 
 =item 2.
 
@@ -354,18 +354,18 @@ variable or subroutine name, you can replace the identifier with a
 BLOCK returning a reference of the correct type.  In other words, the
 previous examples could be written like this:
 
-    $bar = ${$scalarref};
-    push(@{$arrayref}, $filename);
-    ${$arrayref}[0] = "January";
-    ${$hashref}{"KEY"} = "VALUE";
-    &{$coderef}(1,2,3);
-    $globref->print("output\n");  # iff IO::Handle is loaded
+    my $bar = ${$scalar_ref};
+    push(@{$array_ref}, $filename);
+    ${$array_ref}[0] = "January";
+    ${$hash_ref}{"KEY"} = "VALUE";
+    &{$code_ref}(1,2,3);
+    $glob_ref->print("output\n");  # iff IO::Handle is loaded
 
 Admittedly, it's a little silly to use the curlies in this case, but
 the BLOCK can contain any arbitrary expression, in particular,
 subscripted expressions:
 
-    &{ $dispatch{$index} }(1,2,3);	# call correct routine
+    &{ $dispatch{$index} }(1,2,3);      # call correct routine
 
 Because of being able to omit the curlies for the simple case of C<$$x>,
 people often make the mistake of viewing the dereferencing symbols as
@@ -374,13 +374,13 @@ though, you could use parentheses instead of braces.  That's not the case.
 Consider the difference below; case 0 is a short-hand version of case 1,
 I<not> case 2:
 
-    $$hashref{"KEY"}   = "VALUE";	# CASE 0
-    ${$hashref}{"KEY"} = "VALUE";	# CASE 1
-    ${$hashref{"KEY"}} = "VALUE";	# CASE 2
-    ${$hashref->{"KEY"}} = "VALUE";	# CASE 3
+    $$hash_ref{"KEY"}   = "VALUE";       # CASE 0
+    ${$hash_ref}{"KEY"} = "VALUE";       # CASE 1
+    ${$hash_ref{"KEY"}} = "VALUE";       # CASE 2
+    ${$hash_ref->{"KEY"}} = "VALUE";     # CASE 3
 
 Case 2 is also deceptive in that you're accessing a variable
-called %hashref, not dereferencing through $hashref to the hash
+called %hash_ref, not dereferencing through $hash_ref to the hash
 it's presumably referencing.  That would be case 3.
 
 =item 3.
@@ -389,9 +389,9 @@ Subroutine calls and lookups of individual array elements arise often
 enough that it gets cumbersome to use method 2.  As a form of
 syntactic sugar, the examples for method 2 may be written:
 
-    $arrayref->[0] = "January";   # Array element
-    $hashref->{"KEY"} = "VALUE";  # Hash element
-    $coderef->(1,2,3);            # Subroutine call
+    $array_ref->[0] = "January";   # Array element
+    $hash_ref->{"KEY"} = "VALUE";  # Hash element
+    $code_ref->(1,2,3);            # Subroutine call
 
 The left side of the arrow can be any expression returning a reference,
 including a previous dereference.  Note that C<$array[$x]> is I<not> the
@@ -440,7 +440,7 @@ numerically to see whether they refer to the same location.
 X<reference, numeric context>
 
     if ($ref1 == $ref2) {  # cheap numeric compare of references
-	print "refs 1 and 2 refer to the same thing\n";
+        print "refs 1 and 2 refer to the same thing\n";
     }
 
 Using a reference as a string produces both its referent's type,
@@ -543,14 +543,14 @@ value.
 People frequently expect it to work like this.  So it does.
 
     $name = "foo";
-    $$name = 1;			# Sets $foo
-    ${$name} = 2;		# Sets $foo
-    ${$name x 2} = 3;		# Sets $foofoo
-    $name->[0] = 4;		# Sets $foo[0]
-    @$name = ();		# Clears @foo
-    &$name();			# Calls &foo()
+    $$name = 1;                 # Sets $foo
+    ${$name} = 2;               # Sets $foo
+    ${$name x 2} = 3;           # Sets $foofoo
+    $name->[0] = 4;             # Sets $foo[0]
+    @$name = ();                # Clears @foo
+    &$name();                   # Calls &foo()
     $pack = "THAT";
-    ${"${pack}::$name"} = 5;	# Sets $THAT::foo without eval
+    ${"${pack}::$name"} = 5;    # Sets $THAT::foo without eval
 
 This is powerful, and slightly dangerous, in that it's possible
 to intend (with the utmost sincerity) to use a hard reference, and
@@ -571,8 +571,8 @@ a symbol table, and thus are invisible to this mechanism.  For example:
     local $value = 10;
     $ref = "value";
     {
-	my $value = 20;
-	print $$ref;
+        my $value = 20;
+        print $$ref;
     }
 
 This will still print 10, not 20.  Remember that local() affects package
@@ -602,8 +602,8 @@ construct is I<not> considered to be a symbolic reference when you're
 using strict refs:
 
     use strict 'refs';
-    ${ bareword };	# Okay, means $bareword.
-    ${ "bareword" };	# Error, symbolic reference.
+    ${ bareword };      # Okay, means $bareword.
+    ${ "bareword" };    # Error, symbolic reference.
 
 Similarly, because of all the subscripting that is done using single words,
 the same rule applies to any bareword that is used for subscripting a hash.
@@ -657,9 +657,9 @@ The red() and green() functions would be similar.  To create these,
 we'll assign a closure to a typeglob of the name of the function we're
 trying to build.
 
-    @colors = qw(red blue green yellow orange purple violet);
+    my @colors = qw(red blue green yellow orange purple violet);
     for my $name (@colors) {
-        no strict 'refs';	# allow symbol table manipulation
+        no strict 'refs';       # allow symbol table manipulation
         *$name = *{uc $name} = sub { "<FONT COLOR='$name'>@_</FONT>" };
     }
 
@@ -742,7 +742,7 @@ more like
 And then at least you can use the values(), which will be
 real refs, instead of the keys(), which won't.
 
-The standard Tie::RefHash module provides a convenient workaround to this.
+The standard L<Tie::RefHash> module provides a convenient workaround to this.
 
 =head1 Postfix Dereference Syntax
 
@@ -752,10 +752,10 @@ of a prefixed sigil, a postfixed sigil-and-star is used.
 
 For example:
 
-    $r = \@a;
+    my $r = \@a;
     @b = $r->@*; # equivalent to @$r or @{ $r }
 
-    $r = [ 1, [ 2, 3 ], 4 ];
+    my $r = [ 1, [ 2, 3 ], 4 ];
     $r->[1]->@*;  # equivalent to @{ $r->[1] }
 
 This syntax must be enabled with C<use feature 'postderef'>.  It is

@@ -239,7 +239,7 @@ better to use the direct method invocation approach:
     use Tk;
     my $main    = MainWindow->new();
     my $menubar = $main->Frame(-relief              => "raised",
-                            -borderwidth         => 2)
+                               -borderwidth         => 2)
 
 =item 6.
 X<autovivification>

@@ -188,14 +188,17 @@ itself every time the C<SIGHUP> signal is received. The actual code is
 located in the subroutine C<code()>, which just prints some debugging
 info to show that it works; it should be replaced with the real code.
 
-  #!/usr/bin/perl -w
+  #!/usr/bin/perl
+
+  use strict;
+  use warnings;
 
   use POSIX ();
   use FindBin ();
   use File::Basename ();
-  use File::Spec::Functions;
+  use File::Spec::Functions (qw(catfile));
 
-  $| = 1;
+  STDOUT->autoflush(1);
 
   # make the daemon cross-platform, so exec always calls the script
   # itself with the right path, no matter how the script was invoked.
@@ -214,7 +217,8 @@ info to show that it works; it should be replaced with the real code.
       print "PID: $$\n";
       print "ARGV: @ARGV\n";
       my $count = 0;
-      while (++$count) {
+      while (1) {
+          ++$count;
           sleep 2;
           print "$count\n";
       }

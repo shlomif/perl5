@@ -750,7 +750,9 @@ md5(...)
 	    if (items == 1) {
 		if (SvROK(ST(0))) {
                     SV* sv = SvRV(ST(0));
-		    if (SvOBJECT(sv) && strEQ(HvNAME(SvSTASH(sv)), "Digest::MD5"))
+                    char *name;
+		    if (SvOBJECT(sv) && (name = HvNAME(SvSTASH(sv)))
+                                     && strEQ(name, "Digest::MD5"))
 		        msg = "probably called as method";
 		    else
 			msg = "called with reference argument";
@@ -763,7 +765,9 @@ md5(...)
 		}
 		else if (SvROK(ST(0))) {
 		    SV* sv = SvRV(ST(0));
-		    if (SvOBJECT(sv) && strEQ(HvNAME(SvSTASH(sv)), "Digest::MD5"))
+                    char *name;
+		    if (SvOBJECT(sv) && (name = HvNAME(SvSTASH(sv)))
+                                     && strEQ(name, "Digest::MD5"))
 		        msg = "probably called as method";
 		}
 	    }

@@ -184,7 +184,7 @@ filter_call(pTHX_ int idx, SV *buf_sv, int maxlen)
 		return n ;
 
 	    /* return what we have so far else signal eof */
-	    return (SvCUR(buf_sv)>0) ? SvCUR(buf_sv) : n;
+	    return (SvCUR(buf_sv)>0) ? (int)SvCUR(buf_sv) : n;
 	}
 
     }
@@ -250,6 +250,7 @@ void
 unimport(package="$Package", ...)
     const char *package
     PPCODE:
+    PERL_UNUSED_VAR(package);
     filter_del(filter_call);
 
 

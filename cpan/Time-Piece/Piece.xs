@@ -438,6 +438,16 @@ const struct lc_time_T	_C_time_locale = {
 	"%B %e"
 };
 
+/* this function exists purely avoid compiler warnings about these two
+ * otherwise unused static vars */
+
+extern void
+get_id(const char ** const c, const char ** const s)
+{
+    *c = copyright;
+    *s = sccsid;
+}
+
 #define Locale (&_C_time_locale)
 
 static char *
@@ -685,7 +695,7 @@ label:
 
 		case 'A':
 		case 'a':
-			for (i = 0; i < asizeof(Locale->weekday); i++) {
+			for (i = 0; i < (int)asizeof(Locale->weekday); i++) {
 				if (c == 'A') {
 					len = strlen(Locale->weekday[i]);
 					if (strncasecmp(buf,
@@ -700,7 +710,7 @@ label:
 						break;
 				}
 			}
-			if (i == asizeof(Locale->weekday))
+			if (i == (int)asizeof(Locale->weekday))
 				return 0;
 
 			tm->tm_wday = i;
@@ -779,7 +789,7 @@ label:
 		case 'B':
 		case 'b':
 		case 'h':
-			for (i = 0; i < asizeof(Locale->month); i++) {
+			for (i = 0; i < (int)asizeof(Locale->month); i++) {
 				if (Oalternative) {
 					if (c == 'B') {
 						len = strlen(Locale->alt_month[i]);
@@ -804,7 +814,7 @@ label:
 					}
 				}
 			}
-			if (i == asizeof(Locale->month))
+			if (i == (int)asizeof(Locale->month))
 				return 0;
 
 			tm->tm_mon = i;
@@ -1056,7 +1066,7 @@ _strftime(fmt, sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1
         ** If there is a better way to make it portable, go ahead by
         ** all means.
         */
-        if ((len > 0 && len < sizeof(tmpbuf)) || (len == 0 && *fmt == '\0'))
+        if ((len > 0 && len < (int)sizeof(tmpbuf)) || (len == 0 && *fmt == '\0'))
         ST(0) = sv_2mortal(newSVpv(tmpbuf, len));
         else {
         /* Possibly buf overflowed - try again with a bigger buf */

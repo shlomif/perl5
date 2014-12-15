@@ -1,4 +1,4 @@
-Digest::MD5 cpan/Digest-MD5/t/files.t bdbe05b705d9da305fedce7a9f4b6ba63250c7cf
+Digest::MD5 cpan/Digest-MD5/t/files.t 4de89f20a9a1da5597f5047d7cff1e60a46adb4e
 Encode cpan/Encode/encoding.pm 506ec84f1fbbff189c3f4f47b92aff5afc95b98e
 PerlIO::via::QuotedPrint cpan/PerlIO-via-QuotedPrint/t/QuotedPrint.t ca39f0146e89de02c746e199c45dcb3e5edad691
 Socket cpan/Socket/t/getnameinfo.t f25ae4125d64a81538d4d3b73a3a0b9ce3c0404d
@@ -18,6 +18,5 @@ autodie cpan/autodie/t/truncate.t 0fa688d8838b2b4d5b6508f244f4eb099a72e86f
 autodie cpan/autodie/t/utf8_open.t 5295851351c49f939008c5aca6a798742b1e503d
 podlators cpan/podlators/scripts/pod2man.PL f81acf53f3ff46cdcc5ebdd661c5d13eb35d20d6
 podlators cpan/podlators/scripts/pod2text.PL b4693fcfe4a0a1b38a215cfb8985a65d5d025d69
-threads dist/threads/threads.xs f492e1266d30f62faba625bee1d11652eb349955
 version cpan/version/lib/version.pm d0923b895d57f1d669ae36fcf85c87b16db341d1
 version vutil.c 668f17ca43e2527645674d29ba772b86330d5663

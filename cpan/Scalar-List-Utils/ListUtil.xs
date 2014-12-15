@@ -96,7 +96,7 @@ ALIAS:
 CODE:
 {
     int index;
-    NV retval;
+    NV retval = 0.0; /* avoid 'uninit var' warning */
     SV *retsv;
     int magic;
 
@@ -327,6 +327,7 @@ CODE:
         dMULTICALL;
         I32 gimme = G_SCALAR;
 
+        PERL_UNUSED_VAR(newsp);
         PUSH_MULTICALL(cv);
         for(index = 2 ; index < items ; index++) {
             GvSV(bgv) = args[index];
@@ -380,6 +381,8 @@ CODE:
     if(!CvISXSUB(cv)) {
         dMULTICALL;
         I32 gimme = G_SCALAR;
+
+        PERL_UNUSED_VAR(newsp);
         PUSH_MULTICALL(cv);
 
         for(index = 1 ; index < items ; index++) {
@@ -448,6 +451,7 @@ PPCODE:
         I32 gimme = G_SCALAR;
         int index;
 
+        PERL_UNUSED_VAR(newsp);
         PUSH_MULTICALL(cv);
         for(index = 1; index < items; index++) {
             GvSV(PL_defgv) = args[index];
@@ -509,6 +513,7 @@ PPCODE:
         dMULTICALL;
         I32 gimme = G_SCALAR;
 
+        PERL_UNUSED_VAR(newsp);
         PUSH_MULTICALL(cv);
         for(; argi < items; argi += 2) {
             SV *a = GvSV(agv) = stack[argi];
@@ -593,6 +598,7 @@ PPCODE:
         dMULTICALL;
         I32 gimme = G_SCALAR;
 
+        PERL_UNUSED_VAR(newsp);
         PUSH_MULTICALL(cv);
         for(; argi < items; argi += 2) {
             SV *a = GvSV(agv) = stack[argi];
@@ -683,13 +689,15 @@ PPCODE:
         dMULTICALL;
         I32 gimme = G_ARRAY;
 
+        PERL_UNUSED_VAR(newsp);
         PUSH_MULTICALL(cv);
         for(; argi < items; argi += 2) {
-            SV *a = GvSV(agv) = args_copy ? args_copy[argi] : stack[argi];
-            SV *b = GvSV(bgv) = argi < items-1 ? 
+            int count;
+
+            GvSV(agv) = args_copy ? args_copy[argi] : stack[argi];
+            GvSV(bgv) = argi < items-1 ?
                 (args_copy ? args_copy[argi+1] : stack[argi+1]) :
                 &PL_sv_undef;
-            int count;
 
             MULTICALL;
             count = PL_stack_sp - PL_stack_base;
@@ -727,12 +735,13 @@ PPCODE:
     {
         for(; argi < items; argi += 2) {
             dSP;
-            SV *a = GvSV(agv) = args_copy ? args_copy[argi] : ST(argi);
-            SV *b = GvSV(bgv) = argi < items-1 ? 
-                (args_copy ? args_copy[argi+1] : ST(argi+1)) :
-                &PL_sv_undef;
             int count;
             int i;
+
+            GvSV(agv) = args_copy ? args_copy[argi] : ST(argi);
+            GvSV(bgv) = argi < items-1 ?
+                (args_copy ? args_copy[argi+1] : ST(argi+1)) :
+                &PL_sv_undef;
 
             PUSHMARK(SP);
             count = call_sv((SV*)cv, G_ARRAY);

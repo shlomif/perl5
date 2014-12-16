@@ -170,7 +170,10 @@ sub import {
 	], $class,
     );
 
-    ${^ENCODING} = $decoder;
+    {
+        no warnings 'deprecated';
+        ${^ENCODING} = $decoder;
+    }
     $^H{$class} = 1;
 }
 

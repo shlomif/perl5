@@ -1109,6 +1109,12 @@ setitimer(which, seconds, interval = 0)
 	newit.it_interval.tv_sec  = (IV)interval;
 	newit.it_interval.tv_usec =
 	  (IV)((interval - (NV)newit.it_interval.tv_sec) * NV_1E6);
+        /* on some platforms the 1st arg to setitimer is an enum, which
+         * causes -Wc++-compat to complain about passing an int instead
+         */
+#ifdef GCC_DIAG_IGNORE
+        GCC_DIAG_IGNORE(-Wc++-compat);
+#endif
 	if (setitimer(which, &newit, &oldit) == 0) {
 	  EXTEND(sp, 1);
 	  PUSHs(sv_2mortal(newSVnv(TV2NV(oldit.it_value))));
@@ -1117,6 +1123,9 @@ setitimer(which, seconds, interval = 0)
 	    PUSHs(sv_2mortal(newSVnv(TV2NV(oldit.it_interval))));
 	  }
 	}
+#ifdef GCC_DIAG_RESTORE
+        GCC_DIAG_RESTORE;
+#endif
 
 void
 getitimer(which)
@@ -1124,6 +1133,12 @@ getitimer(which)
     PREINIT:
 	struct itimerval nowit;
     PPCODE:
+        /* on some platforms the 1st arg to getitimer is an enum, which
+         * causes -Wc++-compat to complain about passing an int instead
+         */
+#ifdef GCC_DIAG_IGNORE
+        GCC_DIAG_IGNORE(-Wc++-compat);
+#endif
 	if (getitimer(which, &nowit) == 0) {
 	  EXTEND(sp, 1);
 	  PUSHs(sv_2mortal(newSVnv(TV2NV(nowit.it_value))));
@@ -1132,6 +1147,9 @@ getitimer(which)
 	    PUSHs(sv_2mortal(newSVnv(TV2NV(nowit.it_interval))));
 	  }
 	}
+#ifdef GCC_DIAG_RESTORE
+        GCC_DIAG_RESTORE;
+#endif
 
 #endif /* #if defined(HAS_GETITIMER) && defined(HAS_SETITIMER) */
 

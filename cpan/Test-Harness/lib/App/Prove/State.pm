@@ -333,7 +333,7 @@ sub get_tests {
 sub _query {
     my $self = shift;
     if ( my @sel = @{ $self->{select} } ) {
-        warn "No saved state, selection will be empty\n"
+        print "No saved state, selection will be empty\n"
           unless $self->results->num_tests;
         return map { $self->_query_clause($_) } @sel;
     }

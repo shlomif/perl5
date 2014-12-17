@@ -21,7 +21,12 @@ my $t;
 foreach my $r ({}, \$t, [], \*F, sub {}) {
   my $n = "$r";
   $n =~ /0x(\w+)/;
-  my $addr = do { local $^W; hex $1 };
+  my $addr = do {
+    local $^W;
+    # avoid "Hexadecimal number > 0xffffffff non-portable"
+    no warnings 'portable';
+    hex $1
+  };
   my $before = ref($r);
   is( refaddr($r), $addr, $n);
   is( ref($r), $before, $n);

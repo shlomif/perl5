@@ -198,7 +198,18 @@ sub new {
     while (@dirs) {
         $root= shift @dirs;
         next if !-d $root;
-        find($sub,$root);
+        if (exists $ENV{HARNESS_OPTIONS}
+            && $ENV{HARNESS_OPTIONS} =~ /-j(\d+)/
+            && $1 > 1)
+        {
+            # if testing is running in parallel, other processes can be
+            # adding and removing files; avoid spurious warnings
+            no warnings 'File::Find';
+            find($sub,$root);
+        }
+        else {
+            find($sub,$root);
+        }
     }
 
     return $self;

@@ -793,10 +793,10 @@ pack_sockaddr_in(port, ip_address_sv)
 	ip_address = SvPVbyte(ip_address_sv, addrlen);
 	if (addrlen == sizeof(addr) || addrlen == 4)
 		addr.s_addr =
-		    (ip_address[0] & 0xFF) << 24 |
-		    (ip_address[1] & 0xFF) << 16 |
-		    (ip_address[2] & 0xFF) <<  8 |
-		    (ip_address[3] & 0xFF);
+		    (unsigned int)(ip_address[0] & 0xFF) << 24 |
+		    (unsigned int)(ip_address[1] & 0xFF) << 16 |
+		    (unsigned int)(ip_address[2] & 0xFF) <<  8 |
+		    (unsigned int)(ip_address[3] & 0xFF);
 	else
 		croak("Bad arg length for %s, length is %"UVuf", should be %"UVuf,
 		      "Socket::pack_sockaddr_in",

@@ -369,7 +369,7 @@ static ULNG shabits(UCHR *bitstr, ULNG bitcnt, SHA *s)
 	ULNG savecnt = bitcnt;
 
 	gap = 8 - s->blockcnt % 8;
-	s->block[s->blockcnt>>3] &= (UCHR) (~0 << gap);
+	s->block[s->blockcnt>>3] &= (UCHR) (~0U << gap);
 	s->block[s->blockcnt>>3] |= (UCHR) (*bitstr >> (8 - gap));
 	s->blockcnt += bitcnt < gap ? bitcnt : gap;
 	if (bitcnt < gap)

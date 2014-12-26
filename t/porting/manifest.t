@@ -70,18 +70,6 @@ while (<$m>) {
 
 close $m or die $!;
 
-# Test that MANIFEST is properly sorted
-SKIP: {
-    skip("'Porting/manisort' not found", 1) if (! -f 'Porting/manisort');
-
-    my $result = runperl('progfile' => 'Porting/manisort',
-                         'args'     => [ '-c', $manifest ],
-                         'stderr'   => 1,
-                         'nolib'    => 1 );
-
-    like($result, qr/is sorted properly/, 'MANIFEST sorted properly');
-}
-
 SKIP: {
     find_git_or_skip(6);
     chomp(my @repo= grep { !/\.gitignore$/ } `git ls-files`);

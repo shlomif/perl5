@@ -311,9 +311,6 @@ PATH_SEP = $p_
 MINIPERL_EXE = miniperl\$(EXE_EXT)
 MINIPERL = \$(LDLIBPTH) ./miniperl\$(EXE_EXT) -Ilib
 
-# Macros to invoke sort the MANIFEST during build
-MANIFEST_SRT = MANIFEST.srt
-
 !GROK!THIS!
 
 case "$usecrosscompile$perl" in
@@ -566,14 +563,9 @@ splintfiles = $(c1)
 	@echo `$(CCCMDSRC)` -S $*.c
 	@`$(CCCMDSRC)` -S $*.c
 
-all: $(FIRSTMAKEFILE) $(MINIPERL_EXE) $(generated_pods) $(private) $(unidatafiles) $(public) $(dynamic_ext) $(nonxs_ext) extras.make $(MANIFEST_SRT)
+all: $(FIRSTMAKEFILE) $(MINIPERL_EXE) $(generated_pods) $(private) $(unidatafiles) $(public) $(dynamic_ext) $(nonxs_ext) extras.make
 	@echo " ";
 	@echo "	Everything is up to date. Type '$(MAKE) test' to run test suite."
-
-$(MANIFEST_SRT):	MANIFEST
-	@perl Porting/manisort -q || (echo "WARNING: re-sorting MANIFEST"; \
-		perl Porting/manisort -q -o MANIFEST; sh -c true)
-	@touch $(MANIFEST_SRT)
 
 .PHONY: all utilities
 

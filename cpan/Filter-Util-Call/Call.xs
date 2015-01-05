@@ -173,7 +173,7 @@ filter_call(pTHX_ int idx, SV *buf_sv, int maxlen)
 
 	    if (fdebug) 
 	        warn ("filter_read %d returned %d , returning %" IVdf "\n", idx, n,
-		      (SvCUR(buf_sv)>0) ? SvCUR(buf_sv) : (IV)n);
+		      (SvCUR(buf_sv)>0) ? (IV)SvCUR(buf_sv) : (IV)n);
 
 	    /* PERL_MODULE(my_sv) ; */
 	    /* PERL_OBJECT(my_sv) ; */

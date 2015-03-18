@@ -30,7 +30,13 @@ else {
             for (my $i = $start; $i < 256; $i++) {
                 my $char = chr $i;
                 next if $char =~ /[[:ascii:]]/;
-                is(_meta_notation($char), sprintf("\\x{%X}", $i));
+                unless (is(_meta_notation($char), sprintf("\\x{%X}", $i))) {
+                    my $m = _meta_notation($char);
+                    my $s = sprintf("\\x{%X}", $i);
+                    use bytes;
+                    print STDERR __FILE__, ": ", __LINE__, ": meta_notation=", join(" ", map { sprintf "%02X", ord $_ } split("", $m)), "\n";
+                    print STDERR __FILE__, ": ", __LINE__, ":       sprintf=", join(" ", map { sprintf "%02X", ord $_ } split("", $s)), "\n";
+                }
                 last;
             }
         }

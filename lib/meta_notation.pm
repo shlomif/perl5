@@ -43,11 +43,16 @@ sub _meta_notation ($) {
     }
     else {
         no warnings 'experimental::regex_sets';
+        use re qw(Debug ALL);
         # Leave alone things above \xff
         $string =~ s/( (?[ [\x00-\xFF] & [:^print:]])) /
                   sprintf("\\x{%X}", ord($1))/xeg;
     }
 
+    {
+        use bytes;
+        print STDERR __FILE__, ": ", __LINE__, ":       output=", join(" ", map { sprintf "%02X", ord $_ } split("", $string)), "\n";
+    }
     return $string;
 }
 1

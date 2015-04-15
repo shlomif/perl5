@@ -805,6 +805,7 @@ phil\100perkpartners.com                phil\100finchcomputer.com
 pimlott\100idiomtech.com                andrew\100pimlott.net
 +                                       pimlott\100abel.math.harvard.edu
 pixel\100mandriva.com                   pixel\100mandrakesoft.com
+pjacklam\100online.no                   pjacklam\100gmail.com
 pne\100cpan.org                         philip.newton\100gmx.net
 +                                       philip.newton\100datenrevision.de
 +                                       pnewton\100gmx.de

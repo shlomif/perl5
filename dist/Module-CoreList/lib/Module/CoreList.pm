@@ -7,6 +7,31 @@ use version;
 use Scalar::Util 'isvstring';
 $VERSION = '5.20150420';
 
+{ package Module::CoreList::TieHashVersionNormalizer;
+  use Tie::Hash;
+  BEGIN { our @ISA = 'Tie::StdHash'; }
+  sub FETCH {
+    my ($self, $key) = @_;
+    $self->SUPER::FETCH( Module::CoreList::_normalize_version($key) );
+  }
+  sub STORE {
+    my ($self, $key, $value) = @_;
+    $self->SUPER::STORE( Module::CoreList::_normalize_version($key), $value );
+  }
+  sub EXISTS {
+    my ($self, $key) = @_;
+    $self->SUPER::EXISTS( Module::CoreList::_normalize_version($key) );
+  }
+  sub DELETE {
+    my ($self, $key, $value) = @_;
+    $self->SUPER::DELETE( Module::CoreList::_normalize_version($key) );
+  }
+}
+
+tie %released, 'Module::CoreList::TieHashVersionNormalizer';
+tie %deprecated, 'Module::CoreList::TieHashVersionNormalizer';
+tie %version, 'Module::CoreList::TieHashVersionNormalizer';
+
 sub _released_order {   # Sort helper, to make '?' sort after everything else
     (substr($released{$a}, 0, 1) eq "?")
     ? ((substr($released{$b}, 0, 1) eq "?")
@@ -11385,7 +11410,7 @@ sub is_core
     my ($module_version, $perl_version);
 
     $module_version = shift if @_ > 0;
-    $perl_version   = @_ > 0 ? shift : $];
+    $perl_version   = _normalize_version(@_ > 0 ? shift : $]);
 
     my $first_release = first_release($module);
 
@@ -11409,7 +11434,7 @@ sub is_core
         my $rel = $perl_version;
         while (defined($rel)) {
             # XXX: This line is a sign of failure. -- rjbs, 2015-04-15
-            my $this_delta = $delta{$rel} // $delta{ sprintf '%0.6f', $rel };
+            my $this_delta = $delta{$rel} || $delta{ sprintf '%0.6f', $rel };
             $rel = $this_delta->{delta_from};
             unshift(@releases, $rel) if defined($rel);
         }
@@ -12707,8 +12732,8 @@ for my $version (sort { $a <=> $b } keys %deprecated) {
 
 # Create aliases with trailing zeros for $] use
 
-$released{'5.000'} = $released{5};
-$version{'5.000'} = $version{5};
+# $released{'5.000'} = $released{5};
+# $version{'5.000'} = $version{5};
 
 _create_aliases(\%delta);
 _create_aliases(\%released);

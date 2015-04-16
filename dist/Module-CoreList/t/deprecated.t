@@ -26,7 +26,7 @@ ok(! Module::CoreList::is_deprecated('Switch', 5.010000),
    "Switch not deprecated in 5.010000 (function w/ perl version)"
 );
 
-is(Module::CoreList::deprecated_in('Switch'), 5.011000,
+is(Module::CoreList::deprecated_in('Switch'), '5.011000',
    "Switch was deprecated in 5.011000 (deprecated_in)"
 );
 

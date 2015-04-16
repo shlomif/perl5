@@ -4,6 +4,7 @@ use vars qw/$VERSION %released %version %families %upstream
 	    %bug_tracker %deprecated %delta/;
 use Module::CoreList::TieHashDelta;
 use version;
+use Scalar::Util 'isvstring';
 $VERSION = '5.20150420';
 
 sub _released_order {   # Sort helper, to make '?' sort after everything else
@@ -30,6 +31,17 @@ END {
       if $dumpinc;
 }
 
+sub _normalize_version {
+    my $raw = shift;
+
+    return (reverse sort keys %version)[0] if $raw eq 'latest';
+
+    $raw = sprintf 'v%vd', $raw if isvstring($raw);
+
+    $raw = version->new($raw)->numify if $raw =~ /v5\.[\d.]+/;
+
+    return sprintf '%7.6f', $raw;
+}
 
 sub first_release_raw {
     my $module = shift;
@@ -157,124 +169,124 @@ sub changes_between {
 # should also add an alias for the numerical ($]) version; see
 # just before the __END__ of this module.
 %released = (
-    5.000    => '1994-10-17',
-    5.001    => '1995-03-14',
-    5.002    => '1996-02-29',
-    5.00307  => '1996-10-10',
-    5.004    => '1997-05-15',
-    5.005    => '1998-07-22',
-    5.00503  => '1999-03-28',
-    5.00405  => '1999-04-29',
-    5.006    => '2000-03-22',
-    5.006001 => '2001-04-08',
-    5.007003 => '2002-03-05',
-    5.008    => '2002-07-19',
-    5.008001 => '2003-09-25',
-    5.009    => '2003-10-27',
-    5.008002 => '2003-11-05',
-    5.006002 => '2003-11-15',
-    5.008003 => '2004-01-14',
-    5.00504  => '2004-02-23',
-    5.009001 => '2004-03-16',
-    5.008004 => '2004-04-21',
-    5.008005 => '2004-07-19',
-    5.008006 => '2004-11-27',
-    5.009002 => '2005-04-01',
-    5.008007 => '2005-05-30',
-    5.009003 => '2006-01-28',
-    5.008008 => '2006-01-31',
-    5.009004 => '2006-08-15',
-    5.009005 => '2007-07-07',
-    5.010000 => '2007-12-18',
-    5.008009 => '2008-12-14',
-    5.010001 => '2009-08-22',
-    5.011000 => '2009-10-02',
-    5.011001 => '2009-10-20',
-    5.011002 => '2009-11-20',
-    5.011003 => '2009-12-20',
-    5.011004 => '2010-01-20',
-    5.011005 => '2010-02-20',
-    5.012000 => '2010-04-12',
-    5.013000 => '2010-04-20',
-    5.012001 => '2010-05-16',
-    5.013001 => '2010-05-20',
-    5.013002 => '2010-06-22',
-    5.013003 => '2010-07-20',
-    5.013004 => '2010-08-20',
-    5.012002 => '2010-09-06',
-    5.013005 => '2010-09-19',
-    5.013006 => '2010-10-20',
-    5.013007 => '2010-11-20',
-    5.013008 => '2010-12-20',
-    5.012003 => '2011-01-21',
-    5.013009 => '2011-01-20',
-    5.013010 => '2011-02-20',
-    5.013011 => '2011-03-20',
-    5.014000 => '2011-05-14',
-    5.012004 => '2011-06-20',
-    5.012005 => '2012-11-10',
-    5.014001 => '2011-06-16',
-    5.015000 => '2011-06-20',
-    5.015001 => '2011-07-20',
-    5.015002 => '2011-08-20',
-    5.014002 => '2011-09-26',
-    5.015003 => '2011-09-20',
-    5.015004 => '2011-10-20',
-    5.015005 => '2011-11-20',
-    5.015006 => '2011-12-20',
-    5.015007 => '2012-01-20',
-    5.015008 => '2012-02-20',
-    5.015009 => '2012-03-20',
-    5.016000 => '2012-05-20',
-    5.016001 => '2012-08-08',
-    5.016002 => '2012-11-01',
-    5.017000 => '2012-05-26',
-    5.017001 => '2012-06-20',
-    5.017002 => '2012-07-20',
-    5.017003 => '2012-08-20',
-    5.017004 => '2012-09-20',
-    5.014003 => '2012-10-12',
-    5.017005 => '2012-10-20',
-    5.017006 => '2012-11-20',
-    5.017007 => '2012-12-18',
-    5.017008 => '2013-01-20',
-    5.017009 => '2013-02-20',
-    5.014004 => '2013-03-10',
-    5.016003 => '2013-03-11',
-    5.017010 => '2013-03-21',
-    5.017011 => '2013-04-20',
-    5.018000 => '2013-05-18',
-    5.019000 => '2013-05-20',
-    5.019001 => '2013-06-21',
-    5.019002 => '2013-07-22',
-    5.018001 => '2013-08-12',
-    5.019003 => '2013-08-20',
-    5.019004 => '2013-09-20',
-    5.019005 => '2013-10-20',
-    5.019006 => '2013-11-20',
-    5.019007 => '2013-12-20',
-    5.018002 => '2014-01-06',
-    5.018003 => '2014-10-01',
-    5.018004 => '2014-10-01',
-    5.019008 => '2014-01-20',
-    5.019009 => '2014-02-20',
-    5.01901  => '2014-03-20',
-    5.019011 => '2014-04-20',
-    5.020000 => '2014-05-27',
-    5.021000 => '2014-05-27',
-    5.021001 => '2014-06-20',
-    5.021002 => '2014-07-20',
-    5.021003 => '2014-08-20',
-    5.020001 => '2014-09-14',
-    5.021004 => '2014-09-20',
-    5.021005 => '2014-10-20',
-    5.021006 => '2014-11-20',
-    5.021007 => '2014-12-20',
-    5.021008 => '2015-01-20',
-    5.020002 => '2015-02-14',
-    5.021009 => '2015-02-21',
-    5.021010 => '2015-03-20',
-    5.021011 => '????-??-??',
+    '5.000000' => '1994-10-17',
+    '5.001000' => '1995-03-14',
+    '5.002000' => '1996-02-29',
+    '5.003070' => '1996-10-10',
+    '5.004000' => '1997-05-15',
+    '5.005000' => '1998-07-22',
+    '5.005030' => '1999-03-28',
+    '5.004050' => '1999-04-29',
+    '5.006000' => '2000-03-22',
+    '5.006001' => '2001-04-08',
+    '5.007003' => '2002-03-05',
+    '5.008000' => '2002-07-19',
+    '5.008001' => '2003-09-25',
+    '5.009000' => '2003-10-27',
+    '5.008002' => '2003-11-05',
+    '5.006002' => '2003-11-15',
+    '5.008003' => '2004-01-14',
+    '5.005040' => '2004-02-23',
+    '5.009001' => '2004-03-16',
+    '5.008004' => '2004-04-21',
+    '5.008005' => '2004-07-19',
+    '5.008006' => '2004-11-27',
+    '5.009002' => '2005-04-01',
+    '5.008007' => '2005-05-30',
+    '5.009003' => '2006-01-28',
+    '5.008008' => '2006-01-31',
+    '5.009004' => '2006-08-15',
+    '5.009005' => '2007-07-07',
+    '5.010000' => '2007-12-18',
+    '5.008009' => '2008-12-14',
+    '5.010001' => '2009-08-22',
+    '5.011000' => '2009-10-02',
+    '5.011001' => '2009-10-20',
+    '5.011002' => '2009-11-20',
+    '5.011003' => '2009-12-20',
+    '5.011004' => '2010-01-20',
+    '5.011005' => '2010-02-20',
+    '5.012000' => '2010-04-12',
+    '5.013000' => '2010-04-20',
+    '5.012001' => '2010-05-16',
+    '5.013001' => '2010-05-20',
+    '5.013002' => '2010-06-22',
+    '5.013003' => '2010-07-20',
+    '5.013004' => '2010-08-20',
+    '5.012002' => '2010-09-06',
+    '5.013005' => '2010-09-19',
+    '5.013006' => '2010-10-20',
+    '5.013007' => '2010-11-20',
+    '5.013008' => '2010-12-20',
+    '5.012003' => '2011-01-21',
+    '5.013009' => '2011-01-20',
+    '5.013010' => '2011-02-20',
+    '5.013011' => '2011-03-20',
+    '5.014000' => '2011-05-14',
+    '5.012004' => '2011-06-20',
+    '5.012005' => '2012-11-10',
+    '5.014001' => '2011-06-16',
+    '5.015000' => '2011-06-20',
+    '5.015001' => '2011-07-20',
+    '5.015002' => '2011-08-20',
+    '5.014002' => '2011-09-26',
+    '5.015003' => '2011-09-20',
+    '5.015004' => '2011-10-20',
+    '5.015005' => '2011-11-20',
+    '5.015006' => '2011-12-20',
+    '5.015007' => '2012-01-20',
+    '5.015008' => '2012-02-20',
+    '5.015009' => '2012-03-20',
+    '5.016000' => '2012-05-20',
+    '5.016001' => '2012-08-08',
+    '5.016002' => '2012-11-01',
+    '5.017000' => '2012-05-26',
+    '5.017001' => '2012-06-20',
+    '5.017002' => '2012-07-20',
+    '5.017003' => '2012-08-20',
+    '5.017004' => '2012-09-20',
+    '5.014003' => '2012-10-12',
+    '5.017005' => '2012-10-20',
+    '5.017006' => '2012-11-20',
+    '5.017007' => '2012-12-18',
+    '5.017008' => '2013-01-20',
+    '5.017009' => '2013-02-20',
+    '5.014004' => '2013-03-10',
+    '5.016003' => '2013-03-11',
+    '5.017010' => '2013-03-21',
+    '5.017011' => '2013-04-20',
+    '5.018000' => '2013-05-18',
+    '5.019000' => '2013-05-20',
+    '5.019001' => '2013-06-21',
+    '5.019002' => '2013-07-22',
+    '5.018001' => '2013-08-12',
+    '5.019003' => '2013-08-20',
+    '5.019004' => '2013-09-20',
+    '5.019005' => '2013-10-20',
+    '5.019006' => '2013-11-20',
+    '5.019007' => '2013-12-20',
+    '5.018002' => '2014-01-06',
+    '5.018003' => '2014-10-01',
+    '5.018004' => '2014-10-01',
+    '5.019008' => '2014-01-20',
+    '5.019009' => '2014-02-20',
+    '5.019010' => '2014-03-20',
+    '5.019011' => '2014-04-20',
+    '5.020000' => '2014-05-27',
+    '5.021000' => '2014-05-27',
+    '5.021001' => '2014-06-20',
+    '5.021002' => '2014-07-20',
+    '5.021003' => '2014-08-20',
+    '5.020001' => '2014-09-14',
+    '5.021004' => '2014-09-20',
+    '5.021005' => '2014-10-20',
+    '5.021006' => '2014-11-20',
+    '5.021007' => '2014-12-20',
+    '5.021008' => '2015-01-20',
+    '5.020002' => '2015-02-14',
+    '5.021009' => '2015-02-21',
+    '5.021010' => '2015-03-20',
+    '5.021011' => '????-??-??',
   );
 
 for my $version ( sort { $a <=> $b } keys %released ) {
@@ -283,7 +295,7 @@ for my $version ( sort { $a <=> $b } keys %released ) {
 }
 
 %delta = (
-    5 => {
+    '5.000000' => {
         changed => {
             'AnyDBM_File'           => undef,
             'AutoLoader'            => undef,
@@ -339,8 +351,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.001 => {
-        delta_from => 5,
+    '5.001000' => {
+        delta_from => '5.000000',
         changed => {
             'ExtUtils::Liblist'     => undef,
             'ExtUtils::Manifest'    => undef,
@@ -352,8 +364,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.002 => {
-        delta_from => 5.001,
+    '5.002000' => {
+        delta_from => '5.001000',
         changed => {
             'DB_File'               => '1.01',
             'Devel::SelfStubber'    => '1.01',
@@ -400,8 +412,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'TieHash'               => 1,
         }
     },
-    5.00307 => {
-        delta_from => 5.002,
+    '5.003070' => {
+        delta_from => '5.002000',
         changed => {
             'Config'                => undef,
             'DB_File'               => '1.03',
@@ -444,8 +456,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.004 => {
-        delta_from => 5.00307,
+    '5.004000' => {
+        delta_from => '5.003070',
         changed => {
             'Bundle::CPAN'          => '0.02',
             'CGI'                   => '2.36',
@@ -523,8 +535,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'Fatal'                 => 1,
         }
     },
-    5.00405 => {
-        delta_from => 5.004,
+    '5.004050' => {
+        delta_from => '5.004000',
         changed => {
             'AutoLoader'            => '5.56',
             'AutoSplit'             => '1.0303',
@@ -582,8 +594,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.005 => {
-        delta_from => 5.00405,
+    '5.005000' => {
+        delta_from => '5.004050',
         changed => {
             'AutoLoader'            => undef,
             'AutoSplit'             => '1.0302',
@@ -643,8 +655,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'Bundle::CPAN'          => 1,
         }
     },
-    5.00503 => {
-        delta_from => 5.005,
+    '5.005030' => {
+        delta_from => '5.005000',
         changed => {
             'AutoSplit'             => '1.0303',
             'CGI'                   => '2.46',
@@ -677,8 +689,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.00504 => {
-        delta_from => 5.00503,
+    '5.005040' => {
+        delta_from => '5.005030',
         changed => {
             'CPAN::FirstTime'       => '1.36 ',
             'DB_File'               => '1.807',
@@ -700,8 +712,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.006 => {
-        delta_from => 5.00504,
+    '5.006000' => {
+        delta_from => '5.005040',
         changed => {
             'AutoLoader'            => '5.57',
             'AutoSplit'             => '1.0305',
@@ -803,8 +815,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.006001 => {
-        delta_from => 5.006,
+    '5.006001' => {
+        delta_from => '5.006000',
         changed => {
             'AutoLoader'            => '5.58',
             'B::Assembler'          => '0.02',
@@ -875,8 +887,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.006002 => {
-        delta_from => 5.006001,
+    '5.006002' => {
+        delta_from => '5.006001',
         changed => {
             'CPAN::FirstTime'       => '1.53 ',
             'DB_File'               => '1.806',
@@ -935,8 +947,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.007003 => {
-        delta_from => 5.006001,
+    '5.007003' => {
+        delta_from => '5.006001',
         changed => {
             'AnyDBM_File'           => '1.00',
             'Attribute::Handlers'   => '0.76',
@@ -1229,8 +1241,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.008 => {
-        delta_from => 5.007003,
+    '5.008000' => {
+        delta_from => '5.007003',
         changed => {
             'Attribute::Handlers'   => '0.77',
             'B'                     => '1.01',
@@ -1363,8 +1375,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'PerlIO::Via'           => 1,
         }
     },
-    5.008001 => {
-        delta_from => 5.008,
+    '5.008001' => {
+        delta_from => '5.008000',
         changed => {
             'Attribute::Handlers'   => '0.78',
             'AutoLoader'            => '5.60',
@@ -1613,8 +1625,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.008002 => {
-        delta_from => 5.008001,
+    '5.008002' => {
+        delta_from => '5.008001',
         changed => {
             'DB_File'               => '1.807',
             'Devel::PPPort'         => '2.009',
@@ -1633,8 +1645,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.008003 => {
-        delta_from => 5.008002,
+    '5.008003' => {
+        delta_from => '5.008002',
         changed => {
             'Benchmark'             => '1.052',
             'CGI'                   => '3.01',
@@ -1687,8 +1699,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'Math::BigInt::Scalar'  => 1,
         }
     },
-    5.008004 => {
-        delta_from => 5.008003,
+    '5.008004' => {
+        delta_from => '5.008003',
         changed => {
             'Attribute::Handlers'   => '0.78_01',
             'B::Assembler'          => '0.07',
@@ -1747,8 +1759,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.008005 => {
-        delta_from => 5.008004,
+    '5.008005' => {
+        delta_from => '5.008004',
         changed => {
             'B::Concise'            => '0.61',
             'B::Deparse'            => '0.67',
@@ -1829,8 +1841,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.008006 => {
-        delta_from => 5.008005,
+    '5.008006' => {
+        delta_from => '5.008005',
         changed => {
             'B'                     => '1.07',
             'B::C'                  => '1.04',
@@ -1872,8 +1884,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.008007 => {
-        delta_from => 5.008006,
+    '5.008007' => {
+        delta_from => '5.008006',
         changed => {
             'B'                     => '1.09',
             'B::Concise'            => '0.65',
@@ -1961,8 +1973,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'JPL::Compile'          => 1,
         }
     },
-    5.008008 => {
-        delta_from => 5.008007,
+    '5.008008' => {
+        delta_from => '5.008007',
         changed => {
             'Attribute::Handlers'   => '0.78_02',
             'B'                     => '1.09_01',
@@ -2116,8 +2128,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.008009 => {
-        delta_from => 5.008008,
+    '5.008009' => {
+        delta_from => '5.008008',
         changed => {
             'Attribute::Handlers'   => '0.78_03',
             'AutoLoader'            => '5.67',
@@ -2396,8 +2408,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.009 => {
-        delta_from => 5.008002,
+    '5.009000' => {
+        delta_from => '5.008002',
         changed => {
             'B'                     => '1.03',
             'B::C'                  => '1.03',
@@ -2421,8 +2433,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.009001 => {
-        delta_from => 5.008004,
+    '5.009001' => {
+        delta_from => '5.008004',
         changed => {
             'B'                     => '1.05',
             'B::Assembler'          => '0.06',
@@ -2478,8 +2490,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.009002 => {
-        delta_from => 5.008007,
+    '5.009002' => {
+        delta_from => '5.008007',
         changed => {
             'B'                     => '1.07',
             'B::Concise'            => '0.64',
@@ -2557,8 +2569,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'Test::Harness::Point'  => 1,
         }
     },
-    5.009003 => {
-        delta_from => 5.008008,
+    '5.009003' => {
+        delta_from => '5.008008',
         changed => {
             'Archive::Tar'          => '1.26_01',
             'Archive::Tar::Constant'=> '0.02',
@@ -2714,8 +2726,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.009004 => {
-        delta_from => 5.009003,
+    '5.009004' => {
+        delta_from => '5.009003',
         changed => {
             'Archive::Tar'          => '1.30_01',
             'AutoLoader'            => '5.61',
@@ -2913,8 +2925,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'Compress::Zlib::UncompressPlugin::Inflate'=> 1,
         }
     },
-    5.009005 => {
-        delta_from => 5.009004,
+    '5.009005' => {
+        delta_from => '5.009004',
         changed => {
             'Archive::Extract'      => '0.22_01',
             'Archive::Tar'          => '1.32',
@@ -3205,8 +3217,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'assertions::compat'    => 1,
         }
     },
-    5.01 => {
-        delta_from => 5.009005,
+    '5.010000' => {
+        delta_from => '5.009005',
         changed => {
             'Archive::Extract'      => '0.24',
             'Archive::Tar'          => '1.38',
@@ -3396,8 +3408,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.010001 => {
-        delta_from => 5.01,
+    '5.010001' => {
+        delta_from => '5.010000',
         changed => {
             'App::Prove'            => '3.17',
             'App::Prove::State'     => '3.17',
@@ -3814,8 +3826,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'Test::Harness::Util'   => 1,
         }
     },
-    5.011 => {
-        delta_from => 5.010001,
+    '5.011000' => {
+        delta_from => '5.010001',
         changed => {
             'Archive::Tar'          => '1.54',
             'Attribute::Handlers'   => '0.87',
@@ -3937,8 +3949,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'attrs'                 => 1,
         }
     },
-    5.011001 => {
-        delta_from => 5.011,
+    '5.011001' => {
+        delta_from => '5.011000',
         changed => {
             'B'                     => '1.23',
             'B::Concise'            => '0.77',
@@ -3992,8 +4004,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.011002 => {
-        delta_from => 5.011001,
+    '5.011002' => {
+        delta_from => '5.011001',
         changed => {
             'B::Concise'            => '0.78',
             'B::Deparse'            => '0.93',
@@ -4106,8 +4118,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.011003 => {
-        delta_from => 5.011002,
+    '5.011003' => {
+        delta_from => '5.011002',
         changed => {
             'App::Cpan'             => '1.570001',
             'Archive::Extract'      => '0.36',
@@ -4215,8 +4227,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'legacy'                => 1,
         }
     },
-    5.011004 => {
-        delta_from => 5.011003,
+    '5.011004' => {
+        delta_from => '5.011003',
         changed => {
             'App::Cpan'             => '1.5701',
             'Archive::Extract'      => '0.38',
@@ -4295,8 +4307,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.011005 => {
-        delta_from => 5.011004,
+    '5.011005' => {
+        delta_from => '5.011004',
         changed => {
             'B::Debug'              => '1.12',
             'CPAN'                  => '1.94_56',
@@ -4324,8 +4336,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.012 => {
-        delta_from => 5.011005,
+    '5.012000' => {
+        delta_from => '5.011005',
         changed => {
             'B::Deparse'            => '0.96',
             'CPAN::Distribution'    => '1.9456_01',
@@ -4341,8 +4353,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.012001 => {
-        delta_from => 5.012,
+    '5.012001' => {
+        delta_from => '5.012000',
         changed => {
             'B::Deparse'            => '0.97',
             'CGI'                   => '3.49',
@@ -4384,8 +4396,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.012002 => {
-        delta_from => 5.012001,
+    '5.012002' => {
+        delta_from => '5.012001',
         changed => {
             'Carp'                  => '1.17',
             'Carp::Heavy'           => '1.17',
@@ -4397,8 +4409,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.012003 => {
-        delta_from => 5.012002,
+    '5.012003' => {
+        delta_from => '5.012002',
         changed => {
             'B::Deparse'            => '0.9701',
             'Module::Build::Platform::cygwin'=> '0.360301',
@@ -4408,16 +4420,16 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.012004 => {
-        delta_from => 5.012003,
+    '5.012004' => {
+        delta_from => '5.012003',
         changed => {
             'Module::CoreList'      => '2.50',
         },
         removed => {
         }
     },
-    5.012005 => {
-        delta_from => 5.012004,
+    '5.012005' => {
+        delta_from => '5.012004',
         changed => {
             'B::Concise'            => '0.78_01',
             'Encode'                => '2.39_01',
@@ -4429,8 +4441,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.013 => {
-        delta_from => 5.012,
+    '5.013000' => {
+        delta_from => '5.012000',
         changed => {
             'CGI'                   => '3.49',
             'CGI::Fast'             => '1.08',
@@ -4452,8 +4464,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.013001 => {
-        delta_from => 5.012001,
+    '5.013001' => {
+        delta_from => '5.012001',
         changed => {
             'Data::Dumper'          => '2.126',
             'Dumpvalue'             => '1.14',
@@ -4501,8 +4513,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'Switch'                => 1,
         }
     },
-    5.013002 => {
-        delta_from => 5.013001,
+    '5.013002' => {
+        delta_from => '5.013001',
         changed => {
             'B::Concise'            => '0.79',
             'B::Deparse'            => '0.98',
@@ -4535,8 +4547,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.013003 => {
-        delta_from => 5.013002,
+    '5.013003' => {
+        delta_from => '5.013002',
         changed => {
             'App::Prove'            => '3.21',
             'App::Prove::State'     => '3.21',
@@ -4713,8 +4725,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'TAP::Parser::Source::Perl'=> 1,
         }
     },
-    5.013004 => {
-        delta_from => 5.013003,
+    '5.013004' => {
+        delta_from => '5.013003',
         changed => {
             'App::Prove'            => '3.22',
             'App::Prove::State'     => '3.22',
@@ -4819,8 +4831,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'TAP::Parser::SourceHandler::pgTAP'=> 1,
         }
     },
-    5.013005 => {
-        delta_from => 5.013004,
+    '5.013005' => {
+        delta_from => '5.013004',
         changed => {
             'B::Debug'              => '1.16',
             'CPANPLUS::Dist::Build' => '0.48',
@@ -4894,8 +4906,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.013006 => {
-        delta_from => 5.013005,
+    '5.013006' => {
+        delta_from => '5.013005',
         changed => {
             'Archive::Extract'      => '0.44',
             'B'                     => '1.24',
@@ -4982,8 +4994,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'XS::APItest::KeywordRPN'=> 1,
         }
     },
-    5.013007 => {
-        delta_from => 5.013006,
+    '5.013007' => {
+        delta_from => '5.013006',
         changed => {
             'Archive::Extract'      => '0.46',
             'Archive::Tar'          => '1.72',
@@ -5081,8 +5093,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.013008 => {
-        delta_from => 5.013007,
+    '5.013008' => {
+        delta_from => '5.013007',
         changed => {
             'Archive::Tar'          => '1.74',
             'Archive::Tar::Constant'=> '1.74',
@@ -5185,8 +5197,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.013009 => {
-        delta_from => 5.013008,
+    '5.013009' => {
+        delta_from => '5.013008',
         changed => {
             'Archive::Extract'      => '0.48',
             'Archive::Tar'          => '1.76',
@@ -5311,8 +5323,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.01301 => {
-        delta_from => 5.013009,
+    '5.013010' => {
+        delta_from => '5.013009',
         changed => {
             'Attribute::Handlers'   => '0.89',
             'B'                     => '1.28',
@@ -5414,8 +5426,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.013011 => {
-        delta_from => 5.01301,
+    '5.013011' => {
+        delta_from => '5.013010',
         changed => {
             'App::Prove'            => '3.23',
             'App::Prove::State'     => '3.23',
@@ -5593,8 +5605,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.014 => {
-        delta_from => 5.013011,
+    '5.014000' => {
+        delta_from => '5.013011',
         changed => {
             'ExtUtils::CBuilder'    => '0.280203',
             'ExtUtils::CBuilder::Base'=> '0.280203',
@@ -5628,8 +5640,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.014001 => {
-        delta_from => 5.014,
+    '5.014001' => {
+        delta_from => '5.014000',
         changed => {
             'B::Deparse'            => '1.04',
             'Module::CoreList'      => '2.49_01',
@@ -5638,8 +5650,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.014002 => {
-        delta_from => 5.014001,
+    '5.014002' => {
+        delta_from => '5.014001',
         changed => {
             'CPAN'                  => '1.9600_01',
             'CPAN::Distribution'    => '1.9602_01',
@@ -5653,8 +5665,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.014003 => {
-        delta_from => 5.014002,
+    '5.014003' => {
+        delta_from => '5.014002',
         changed => {
             'Digest'                => '1.16_01',
             'IPC::Open3'            => '1.09_01',
@@ -5663,8 +5675,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.014004 => {
-        delta_from => 5.014003,
+    '5.014004' => {
+        delta_from => '5.014003',
         changed => {
             'Encode'                => '2.42_02',
             'IPC::Open3'            => '1.0901',
@@ -5673,8 +5685,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.015 => {
-        delta_from => 5.014001,
+    '5.015000' => {
+        delta_from => '5.014001',
         changed => {
             'Archive::Extract'      => '0.52',
             'Attribute::Handlers'   => '0.91',
@@ -5781,8 +5793,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'Shell'                 => 1,
         }
     },
-    5.015001 => {
-        delta_from => 5.015,
+    '5.015001' => {
+        delta_from => '5.015000',
         changed => {
             'B::Deparse'            => '1.06',
             'CGI'                   => '3.55',
@@ -5940,8 +5952,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'Sys::Syslog::win32::Win32'=> 1,
         }
     },
-    5.015002 => {
-        delta_from => 5.015001,
+    '5.015002' => {
+        delta_from => '5.015001',
         changed => {
             'Attribute::Handlers'   => '0.92',
             'B'                     => '1.31',
@@ -6057,8 +6069,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.015003 => {
-        delta_from => 5.015002,
+    '5.015003' => {
+        delta_from => '5.015002',
         changed => {
             'AnyDBM_File'           => '1.01',
             'Archive::Extract'      => '0.56',
@@ -6174,8 +6186,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.015004 => {
-        delta_from => 5.015003,
+    '5.015004' => {
+        delta_from => '5.015003',
         changed => {
             'Archive::Tar'          => '1.80',
             'Archive::Tar::Constant'=> '1.80',
@@ -6230,8 +6242,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.015005 => {
-        delta_from => 5.015004,
+    '5.015005' => {
+        delta_from => '5.015004',
         changed => {
             'Archive::Extract'      => '0.58',
             'B::Concise'            => '0.87',
@@ -6326,8 +6338,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.015006 => {
-        delta_from => 5.015005,
+    '5.015006' => {
+        delta_from => '5.015005',
         changed => {
             'Archive::Tar'          => '1.82',
             'Archive::Tar::Constant'=> '1.82',
@@ -6447,8 +6459,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.015007 => {
-        delta_from => 5.015006,
+    '5.015007' => {
+        delta_from => '5.015006',
         changed => {
             'B'                     => '1.33',
             'B::Deparse'            => '1.11',
@@ -6543,8 +6555,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.015008 => {
-        delta_from => 5.015007,
+    '5.015008' => {
+        delta_from => '5.015007',
         changed => {
             'B'                     => '1.34',
             'B::Deparse'            => '1.12',
@@ -6661,8 +6673,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.015009 => {
-        delta_from => 5.015008,
+    '5.015009' => {
+        delta_from => '5.015008',
         changed => {
             'B::Deparse'            => '1.13',
             'B::Lint'               => '1.14',
@@ -6779,8 +6791,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.016 => {
-        delta_from => 5.015009,
+    '5.016000' => {
+        delta_from => '5.015009',
         changed => {
             'B::Concise'            => '0.89',
             'B::Deparse'            => '1.14',
@@ -6802,8 +6814,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.016001 => {
-        delta_from => 5.016,
+    '5.016001' => {
+        delta_from => '5.016000',
         changed => {
             'B'                     => '1.35',
             'B::Deparse'            => '1.14_01',
@@ -6819,16 +6831,16 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.016002 => {
-        delta_from => 5.016001,
+    '5.016002' => {
+        delta_from => '5.016001',
         changed => {
             'Module::CoreList'      => '2.76',
         },
         removed => {
         }
     },
-    5.016003 => {
-        delta_from => 5.016002,
+    '5.016003' => {
+        delta_from => '5.016002',
         changed => {
             'Encode'                => '2.44_01',
             'Module::CoreList'      => '2.76_02',
@@ -6837,8 +6849,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.017 => {
-        delta_from => 5.016,
+    '5.017000' => {
+        delta_from => '5.016000',
         changed => {
             'B'                     => '1.35',
             'B::Concise'            => '0.90',
@@ -6862,8 +6874,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'Version::Requirements' => 1,
         }
     },
-    5.017001 => {
-        delta_from => 5.017,
+    '5.017001' => {
+        delta_from => '5.017000',
         changed => {
             'App::Prove'            => '3.25',
             'App::Prove::State'     => '3.25',
@@ -7082,8 +7094,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'Scalar::Util::PP'      => 1,
         }
     },
-    5.017002 => {
-        delta_from => 5.017001,
+    '5.017002' => {
+        delta_from => '5.017001',
         changed => {
             'App::Prove'            => '3.25_01',
             'App::Prove::State'     => '3.25_01',
@@ -7161,8 +7173,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.017003 => {
-        delta_from => 5.017002,
+    '5.017003' => {
+        delta_from => '5.017002',
         changed => {
             'B'                     => '1.37',
             'B::Concise'            => '0.92',
@@ -7278,8 +7290,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.017004 => {
-        delta_from => 5.017003,
+    '5.017004' => {
+        delta_from => '5.017003',
         changed => {
             'Archive::Tar'          => '1.90',
             'Archive::Tar::Constant'=> '1.90',
@@ -7350,8 +7362,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.017005 => {
-        delta_from => 5.017004,
+    '5.017005' => {
+        delta_from => '5.017004',
         changed => {
             'AutoLoader'            => '5.73',
             'B'                     => '1.39',
@@ -7398,8 +7410,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.017006 => {
-        delta_from => 5.017005,
+    '5.017006' => {
+        delta_from => '5.017005',
         changed => {
             'B'                     => '1.40',
             'B::Concise'            => '0.94',
@@ -7480,8 +7492,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.017007 => {
-        delta_from => 5.017006,
+    '5.017007' => {
+        delta_from => '5.017006',
         changed => {
             'B'                     => '1.41',
             'CPANPLUS::Dist::Build' => '0.68',
@@ -7603,8 +7615,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.017008 => {
-        delta_from => 5.017007,
+    '5.017008' => {
+        delta_from => '5.017007',
         changed => {
             'Archive::Extract'      => '0.62',
             'B'                     => '1.42',
@@ -7687,8 +7699,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.017009 => {
-        delta_from => 5.017008,
+    '5.017009' => {
+        delta_from => '5.017008',
         changed => {
             'App::Cpan'             => '1.60_02',
             'App::Prove'            => '3.26',
@@ -7862,8 +7874,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.017010 => {
-        delta_from => 5.017009,
+    '5.017010' => {
+        delta_from => '5.017009',
         changed => {
             'Benchmark'             => '1.15',
             'Config'                => '5.017009',
@@ -7984,8 +7996,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.017011 => {
-        delta_from => 5.017010,
+    '5.017011' => {
+        delta_from => '5.017010',
         changed => {
             'App::Cpan'             => '1.61',
             'B::Deparse'            => '1.20',
@@ -8032,8 +8044,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.018000 => {
-        delta_from => 5.017011,
+    '5.018000' => {
+        delta_from => '5.017011',
         changed => {
             'Carp'                  => '1.29',
             'Carp::Heavy'           => '1.29',
@@ -8074,8 +8086,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.018001 => {
-        delta_from => 5.018000,
+    '5.018001' => {
+        delta_from => '5.018000',
         changed => {
             'B'                     => '1.42_01',
             'Config'                => '5.018001',
@@ -8088,8 +8100,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
            'VMS::Filespec'         => 1,
         }
     },
-    5.018002 => {
-        delta_from => 5.018001,
+    '5.018002' => {
+        delta_from => '5.018001',
         changed => {
             'B'                     => '1.42_02',
             'B::Concise'            => '0.95_01',
@@ -8100,24 +8112,24 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'Module::CoreList::Utils'=> '3.03',
         },
     },
-    5.018003 => {
-        delta_from => 5.018002,
+    '5.018003' => {
+        delta_from => '5.018002',
         changed => {
             'Module::CoreList'      => '3.12',
             'Module::CoreList::TieHashDelta'=> '3.12',
             'Module::CoreList::Utils'=> '3.12',
         },
     },
-    5.018004 => {
-        delta_from => 5.018003,
+    '5.018004' => {
+        delta_from => '5.018003',
         changed => {
             'Module::CoreList'      => '3.13',
             'Module::CoreList::TieHashDelta'=> '3.13',
             'Module::CoreList::Utils'=> '3.13',
         },
     },
-    5.019000 => {
-        delta_from => 5.018000,
+    '5.019000' => {
+        delta_from => '5.018000',
         changed => {
             'Config'                => '5.019000',
             'Getopt::Std'           => '1.08',
@@ -8188,8 +8200,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
            'Text::Soundex'         => 1,
         }
     },
-    5.019001 => {
-        delta_from => 5.019000,
+    '5.019001' => {
+        delta_from => '5.019000',
         changed => {
             'App::Prove'            => '3.28',
             'App::Prove::State'     => '3.28',
@@ -8463,8 +8475,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.019002 => {
-        delta_from => 5.019001,
+    '5.019002' => {
+        delta_from => '5.019001',
         changed => {
             'B'                     => '1.44',
             'B::Concise'            => '0.98',
@@ -8546,8 +8558,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.019003 => {
-        delta_from => 5.019002,
+    '5.019003' => {
+        delta_from => '5.019002',
         changed => {
             'B'                     => '1.45',
             'CPAN::Meta'            => '2.132140',
@@ -8709,8 +8721,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
            'Module::Build::Platform::RiscOS'=> 1,
         }
     },
-    5.019004 => {
-        delta_from => 5.019003,
+    '5.019004' => {
+        delta_from => '5.019003',
         changed => {
             'B'                     => '1.46',
             'B::Concise'            => '0.99',
@@ -8882,8 +8894,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.019005 => {
-        delta_from => 5.019004,
+    '5.019005' => {
+        delta_from => '5.019004',
         changed => {
             'App::Prove'            => '3.29',
             'App::Prove::State'     => '3.29',
@@ -9024,8 +9036,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'TAP::Parser::Utils'    => 1,
         }
     },
-    5.019006 => {
-        delta_from => 5.019005,
+    '5.019006' => {
+        delta_from => '5.019005',
         changed => {
             'App::Prove'            => '3.30',
             'App::Prove::State'     => '3.30',
@@ -9203,8 +9215,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.019007 => {
-        delta_from => 5.019006,
+    '5.019007' => {
+        delta_from => '5.019006',
         changed => {
             'CGI'                   => '3.64',
             'CGI::Apache'           => '1.02',
@@ -9321,8 +9333,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.019008 => {
-        delta_from => 5.019007,
+    '5.019008' => {
+        delta_from => '5.019007',
         changed => {
             'Config'                => '5.019008',
             'DynaLoader'            => '1.24',
@@ -9434,8 +9446,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.019009 => {
-        delta_from => 5.019008,
+    '5.019009' => {
+        delta_from => '5.019008',
         changed => {
             'B'                     => '1.48',
             'B::Concise'            => '0.992',
@@ -9624,8 +9636,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.01901 => {
-        delta_from => 5.019009,
+    '5.019010' => {
+        delta_from => '5.019009',
         changed => {
             'App::Cpan'             => '1.62',
             'Attribute::Handlers'   => '0.96',
@@ -9760,8 +9772,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.019011 => {
-        delta_from => 5.01901,
+    '5.019011' => {
+        delta_from => '5.019010',
         changed => {
             'CPAN'                  => '2.05',
             'CPAN::Distribution'    => '2.02',
@@ -9808,8 +9820,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.020000 => {
-        delta_from => 5.019011,
+    '5.020000' => {
+        delta_from => '5.019011',
         changed => {
             'Config'                => '5.02',
             'Devel::PPPort'         => '3.21',
@@ -9847,8 +9859,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.021000 => {
-        delta_from => 5.020000,
+    '5.021000' => {
+        delta_from => '5.020000',
         changed => {
             'Module::CoreList'      => '5.021001',
             'Module::CoreList::TieHashDelta'=> '5.021001',
@@ -9893,8 +9905,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'inc::latest'           => 1,
         }
     },
-    5.021001 => {
-        delta_from => 5.021000,
+    '5.021001' => {
+        delta_from => '5.021000',
         changed => {
             'App::Prove'            => '3.32',
             'App::Prove::State'     => '3.32',
@@ -10080,8 +10092,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.021002 => {
-        delta_from => 5.021001,
+    '5.021002' => {
+        delta_from => '5.021001',
         changed => {
             'B'                     => '1.50',
             'Config'                => '5.021002',
@@ -10121,8 +10133,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.021003 => {
-        delta_from => 5.021002,
+    '5.021003' => {
+        delta_from => '5.021002',
         changed => {
             'B::Debug'              => '1.21',
             'CPAN::Meta'            => '2.142060',
@@ -10168,8 +10180,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.020001 => {
-        delta_from => 5.020000,
+    '5.020001' => {
+        delta_from => '5.020000',
         changed => {
             'Config'                => '5.020001',
             'Config::Perl::V'       => '0.22',
@@ -10214,8 +10226,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.021004 => {
-        delta_from => 5.021003,
+    '5.021004' => {
+        delta_from => '5.021003',
         changed => {
             'App::Prove'            => '3.33',
             'App::Prove::State'     => '3.33',
@@ -10388,8 +10400,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.021005 => {
-        delta_from => 5.021004,
+    '5.021005' => {
+        delta_from => '5.021004',
         changed => {
             'B'                     => '1.52',
             'B::Concise'            => '0.994',
@@ -10502,8 +10514,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.021006 => {
-        delta_from => 5.021005,
+    '5.021006' => {
+        delta_from => '5.021005',
         changed => {
             'App::Prove'            => '3.34',
             'App::Prove::State'     => '3.34',
@@ -10676,8 +10688,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.021007 => {
-        delta_from => 5.021006,
+    '5.021007' => {
+        delta_from => '5.021006',
         changed => {
             'Archive::Tar'          => '2.04',
             'Archive::Tar::Constant'=> '2.04',
@@ -10873,8 +10885,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.021008 => {
-        delta_from => 5.021007,
+    '5.021008' => {
+        delta_from => '5.021007',
         changed => {
             'App::Prove'            => '3.35',
             'App::Prove::State'     => '3.35',
@@ -11063,8 +11075,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.020002 => {
-        delta_from => 5.020001,
+    '5.020002' => {
+        delta_from => '5.020001',
         changed => {
             'CPAN::Author'          => '5.5002',
             'CPAN::CacheMgr'        => '5.5002',
@@ -11102,8 +11114,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.021009 => {
-        delta_from => 5.021008,
+    '5.021009' => {
+        delta_from => '5.021008',
         changed => {
             'B'                     => '1.56',
             'B::Debug'              => '1.23',
@@ -11198,8 +11210,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
         removed => {
         }
     },
-    5.021010 => {
-        delta_from => 5.021009,
+    '5.021010' => {
+        delta_from => '5.021009',
         changed => {
             'App::Cpan'             => '1.63',
             'B'                     => '1.57',
@@ -11352,8 +11364,8 @@ for my $version ( sort { $a <=> $b } keys %released ) {
             'Test::Stream::Util'    => 1,
         }
     },
-    5.021011 => {
-        delta_from => 5.02101,
+    '5.021011' => {
+        delta_from => '5.021010',
         changed => {
             'B::Op_private'         => '5.021011',
             'Config'                => '5.021011',
@@ -11426,7 +11438,7 @@ for my $version (sort { $a <=> $b } keys %delta) {
 }
 
 %deprecated = (
-    5.011    => {
+    '5.011000' => {
         changed => { map { $_ => 1 } qw/
             Class::ISA
             Pod::Plainer
@@ -11434,78 +11446,78 @@ for my $version (sort { $a <=> $b } keys %delta) {
             Switch
         /},
     },
-    5.011001 => { delta_from => 5.011 },
-    5.011002 => { delta_from => 5.011001 },
-    5.011003 => { delta_from => 5.011002 },
-    5.011004 => { delta_from => 5.011003 },
-    5.011005 => { delta_from => 5.011004 },
+    '5.011001' => { delta_from => '5.011000' },
+    '5.011002' => { delta_from => '5.011001' },
+    '5.011003' => { delta_from => '5.011002' },
+    '5.011004' => { delta_from => '5.011003' },
+    '5.011005' => { delta_from => '5.011004' },
 
-    5.012    => { delta_from => 5.011005 },
-    5.012001 => { delta_from => 5.012 },
-    5.012002 => { delta_from => 5.012001 },
-    5.012003 => { delta_from => 5.012002 },
-    5.012004 => { delta_from => 5.012003 },
-    5.012005 => { delta_from => 5.012004 },
+    '5.012000' => { delta_from => '5.011005' },
+    '5.012001' => { delta_from => '5.012000' },
+    '5.012002' => { delta_from => '5.012001' },
+    '5.012003' => { delta_from => '5.012002' },
+    '5.012004' => { delta_from => '5.012003' },
+    '5.012005' => { delta_from => '5.012004' },
 
-    5.013    => { delta_from => 5.012005 },
-    5.013001 => {
-        delta_from => 5.013,
+    '5.013000' => { delta_from => '5.012005' },
+    '5.013001' => {
+        delta_from => '5.013000',
         removed => { map { $_ => 1 } qw/
             Class::ISA
             Pod::Plainer
             Switch
         /},
     },
-    5.013002 => { delta_from => 5.013001 },
-    5.013003 => { delta_from => 5.013002 },
-    5.013004 => { delta_from => 5.013003 },
-    5.013005 => { delta_from => 5.013004 },
-    5.013006 => { delta_from => 5.013005 },
-    5.013007 => { delta_from => 5.013006 },
-    5.013008 => { delta_from => 5.013007 },
-    5.013009 => { delta_from => 5.013008 },
-    5.01301  => { delta_from => 5.013009 },
-    5.013011 => { delta_from => 5.01301  },
+    '5.013002' => { delta_from => '5.013001' },
+    '5.013003' => { delta_from => '5.013002' },
+    '5.013004' => { delta_from => '5.013003' },
+    '5.013005' => { delta_from => '5.013004' },
+    '5.013006' => { delta_from => '5.013005' },
+    '5.013007' => { delta_from => '5.013006' },
+    '5.013008' => { delta_from => '5.013007' },
+    '5.013009' => { delta_from => '5.013008' },
+    '5.013010' => { delta_from => '5.013009' },
+    '5.013011' => { delta_from => '5.013010' },
 
-    5.014    => { delta_from => 5.013011 },
-    5.014001 => { delta_from => 5.014    },
-    5.014002 => { delta_from => 5.014001 },
-    5.014003 => { delta_from => 5.014002 },
-    5.014004 => { delta_from => 5.014003 },
+    '5.014000' => { delta_from => '5.013011' },
+    '5.014001' => { delta_from => '5.014000' },
+    '5.014002' => { delta_from => '5.014001' },
+    '5.014003' => { delta_from => '5.014002' },
+    '5.014004' => { delta_from => '5.014003' },
 
-    5.015    => {
-        delta_from => 5.014004,
+    '5.015000' => {
+        delta_from => '5.014004',
         removed => { Shell => 1 },
     },
-    5.015001 => { delta_from => 5.015    },
-    5.015002 => { delta_from => 5.015001 },
-    5.015003 => { delta_from => 5.015002 },
-    5.015004 => { delta_from => 5.015003 },
-    5.015005 => { delta_from => 5.015004 },
-    5.015006 => { delta_from => 5.015005 },
-    5.015007 => { delta_from => 5.015006 },
-    5.015008 => { delta_from => 5.015007 },
-    5.015009 => { delta_from => 5.015008 },
+    '5.015001' => { delta_from => '5.015000' },
+    '5.015002' => { delta_from => '5.015001' },
+    '5.015003' => { delta_from => '5.015002' },
+    '5.015004' => { delta_from => '5.015003' },
+    '5.015005' => { delta_from => '5.015004' },
+    '5.015006' => { delta_from => '5.015005' },
+    '5.015007' => { delta_from => '5.015006' },
+    '5.015008' => { delta_from => '5.015007' },
+    '5.015009' => { delta_from => '5.015008' },
 
-    5.016    => { delta_from => 5.015009 },
-    5.016001 => { delta_from => 5.016    },
-    5.016002 => { delta_from => 5.016001 },
-    5.016003 => { delta_from => 5.016002 },
+    '5.016000' => { delta_from => '5.015009' },
+    '5.016001' => { delta_from => '5.016000' },
+    '5.016002' => { delta_from => '5.016001' },
+    '5.016003' => { delta_from => '5.016002' },
 
-    5.017    => { delta_from => 5.016003 },
-    5.017001 => { delta_from => 5.017    },
-    5.017002 => { delta_from => 5.017001 },
-    5.017003 => { delta_from => 5.017002 },
-    5.017004 => { delta_from => 5.017003 },
-    5.017005 => { delta_from => 5.017004 },
-    5.017006 => { delta_from => 5.017005 },
-    5.017007 => { delta_from => 5.017006 },
-    5.017008 => {
-        delta_from => 5.017007,
+    '5.017000' => { delta_from => '5.016003' },
+    '5.017001' => { delta_from => '5.017000' },
+    '5.017002' => { delta_from => '5.017001' },
+    '5.017003' => { delta_from => '5.017002' },
+    '5.017004' => { delta_from => '5.017003' },
+    '5.017005' => { delta_from => '5.017004' },
+    '5.017006' => { delta_from => '5.017005' },
+    '5.017007' => { delta_from => '5.017006' },
+    '5.017008' => {
+        delta_from => '5.017007',
         changed => { 'Pod::LaTeX' => 1 },
     },
-    5.017009 => {
-        delta_from => 5.017008,
+    '5.017009' => {
+        delta_from => '5.017008',
         changed => { map { $_ => 1 } qw/
             Archive::Extract
             B::Lint
@@ -11566,42 +11578,42 @@ for my $version (sort { $a <=> $b } keys %delta) {
             Text::Soundex
         /},
     },
-    5.01701  => { delta_from => 5.017009 },
-    5.017011 => { delta_from => 5.01701  },
-    5.017012 => { delta_from => 5.017011 },
+    '5.017010' => { delta_from => '5.017009' },
+    '5.017011' => { delta_from => '5.017010' },
+    '5.017012' => { delta_from => '5.017011' },
 
-    5.018    => { delta_from => 5.017012 },
-    5.018001 => {
-        delta_from => 5.018,
+    '5.018000' => { delta_from => '5.017012' },
+    '5.018001' => {
+        delta_from => '5.018000',
         changed => {
         },
         removed => {
         }
     },
-    5.018002 => {
-        delta_from => 5.018001,
+    '5.018002' => {
+        delta_from => '5.018001',
         changed => {
         },
         removed => {
         }
     },
-    5.018003 => {
-        delta_from => 5.018,
+    '5.018003' => {
+        delta_from => '5.018000',
         changed => {
         },
         removed => {
         }
     },
-    5.018004 => {
-        delta_from => 5.018,
+    '5.018004' => {
+        delta_from => '5.018000',
         changed => {
         },
         removed => {
         }
     },
 
-    5.019    => {
-        delta_from => 5.018,
+    '5.019000' => {
+        delta_from => '5.018000',
         changed => { 'Module::Build' => 1 },
         removed => { map { $_ => 1 } qw/
             Archive::Extract
@@ -11664,29 +11676,29 @@ for my $version (sort { $a <=> $b } keys %delta) {
             Text::Soundex
         /}
     },
-    5.019001 => {
-        delta_from => 5.019,
+    '5.019001' => {
+        delta_from => '5.019000',
         changed => {
         },
         removed => {
         }
     },
-    5.019002 => {
-        delta_from => 5.019001,
+    '5.019002' => {
+        delta_from => '5.019001',
         changed => {
         },
         removed => {
         }
     },
-    5.019003 => {
-        delta_from => 5.019002,
+    '5.019003' => {
+        delta_from => '5.019002',
         changed => {
         },
         removed => {
         }
     },
-    5.019004 => {
-        delta_from => 5.019003,
+    '5.019004' => {
+        delta_from => '5.019003',
         changed => {
             'Module::Build::Base'   => '1',
             'Module::Build::Compat' => '1',
@@ -11715,23 +11727,23 @@ for my $version (sort { $a <=> $b } keys %delta) {
         removed => {
         }
     },
-    5.019005 => {
-        delta_from => 5.019004,
+    '5.019005' => {
+        delta_from => '5.019004',
         changed => {
         },
         removed => {
         }
     },
-    5.019006 => {
-        delta_from => 5.019005,
+    '5.019006' => {
+        delta_from => '5.019005',
         changed => {
             'Package::Constants'    => '1',
         },
         removed => {
         }
     },
-    5.019007 => {
-        delta_from => 5.019006,
+    '5.019007' => {
+        delta_from => '5.019006',
         changed => {
             'CGI'                   => '1',
             'CGI::Apache'           => '1',
@@ -11746,134 +11758,134 @@ for my $version (sort { $a <=> $b } keys %delta) {
         removed => {
         }
     },
-    5.019008 => {
-        delta_from => 5.019007,
+    '5.019008' => {
+        delta_from => '5.019007',
         changed => {
         },
         removed => {
         }
     },
-    5.019009 => {
-        delta_from => 5.019008,
+    '5.019009' => {
+        delta_from => '5.019008',
         changed => {
         },
         removed => {
         }
     },
-    5.01901 => {
-        delta_from => 5.019009,
+    '5.019010' => {
+        delta_from => '5.019009',
         changed => {
         },
         removed => {
         }
     },
-    5.019011 => {
-        delta_from => 5.019010,
+    '5.019011' => {
+        delta_from => '5.019010',
         changed => {
         },
         removed => {
         }
     },
-    5.020000 => {
-        delta_from => 5.019011,
+    '5.020000' => {
+        delta_from => '5.019011',
         changed => {
         },
         removed => {
         }
     },
-    5.021000 => {
-        delta_from => 5.020000,
+    '5.021000' => {
+        delta_from => '5.020000',
         changed => {
         },
         removed => {
         }
     },
-    5.021001 => {
-        delta_from => 5.017007,
+    '5.021001' => {
+        delta_from => '5.017007',
         changed => {
         },
         removed => {
         }
     },
-    5.021002 => {
-        delta_from => 5.021001,
+    '5.021002' => {
+        delta_from => '5.021001',
         changed => {
         },
         removed => {
         }
     },
-    5.021003 => {
-        delta_from => 5.021002,
+    '5.021003' => {
+        delta_from => '5.021002',
         changed => {
         },
         removed => {
         }
     },
-    5.020001 => {
-        delta_from => 5.020000,
+    '5.020001' => {
+        delta_from => '5.020000',
         changed => {
         },
         removed => {
         }
     },
-    5.021004 => {
-        delta_from => 5.021003,
+    '5.021004' => {
+        delta_from => '5.021003',
         changed => {
         },
         removed => {
         }
     },
-    5.021005 => {
-        delta_from => 5.021004,
+    '5.021005' => {
+        delta_from => '5.021004',
         changed => {
         },
         removed => {
         }
     },
-    5.021006 => {
-        delta_from => 5.021005,
+    '5.021006' => {
+        delta_from => '5.021005',
         changed => {
         },
         removed => {
         }
     },
-    5.021007 => {
-        delta_from => 5.021006,
+    '5.021007' => {
+        delta_from => '5.021006',
         changed => {
         },
         removed => {
         }
     },
-    5.021008 => {
-        delta_from => 5.021007,
+    '5.021008' => {
+        delta_from => '5.021007',
         changed => {
         },
         removed => {
         }
     },
-    5.020002 => {
-        delta_from => 5.020001,
+    '5.020002' => {
+        delta_from => '5.020001',
         changed => {
         },
         removed => {
         }
     },
-    5.021009 => {
-        delta_from => 5.021008,
+    '5.021009' => {
+        delta_from => '5.021008',
         changed => {
         },
         removed => {
         }
     },
-    5.021010 => {
-        delta_from => 5.021009,
+    '5.021010' => {
+        delta_from => '5.021009',
         changed => {
         },
         removed => {
         }
     },
-    5.021011 => {
-        delta_from => 5.02101,
+    '5.021011' => {
+        delta_from => '5.021010',
         changed => {
         },
         removed => {

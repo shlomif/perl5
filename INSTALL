@@ -135,6 +135,9 @@ Configure supports a number of useful options.  Run
 to get a listing.  See the Porting/Glossary file for a complete list of
 Configure variables you can set and their definitions.
 
+Note that due to (sub)shell invocations, the use of a literal backslash
+in any of the -D arguments is not supported.
+
 =over 4
 
 =item C compiler

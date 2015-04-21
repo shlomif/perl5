@@ -46,30 +46,30 @@ C's precedence is slightly screwy.  (This makes learning Perl easier
 for C folks.)  With very few exceptions, these all operate on scalar
 values only, not array values.
 
-    left	terms and list operators (leftward)
-    left	->
-    nonassoc	++ --
-    right	**
-    right	! ~ \ and unary + and -
-    left	=~ !~
-    left	* / % x
-    left	+ - .
-    left	<< >>
-    nonassoc	named unary operators
-    nonassoc	< > <= >= lt gt le ge
-    nonassoc	== != <=> eq ne cmp ~~
-    left	&
-    left	| ^
-    left	&&
-    left	|| //
-    nonassoc	..  ...
-    right	?:
-    right	= += -= *= etc. goto last next redo dump
-    left	, =>
-    nonassoc	list operators (rightward)
-    right	not
-    left	and
-    left	or xor
+    left        terms and list operators (leftward)
+    left        ->
+    nonassoc    ++ --
+    right       **
+    right       ! ~ \ and unary + and -
+    left        =~ !~
+    left        * / % x
+    left        + - .
+    left        << >>
+    nonassoc    named unary operators
+    nonassoc    < > <= >= lt gt le ge
+    nonassoc    == != <=> eq ne cmp ~~
+    left        &
+    left        | ^
+    left        &&
+    left        || //
+    nonassoc    ..  ...
+    right       ?:
+    right       = += -= *= etc. goto last next redo dump
+    left        , =>
+    nonassoc    list operators (rightward)
+    right       not
+    left        and
+    left        or xor
 
 In the following sections, these operators are covered in precedence order.
 
@@ -96,7 +96,7 @@ whether you are looking at the left side or the right side of the operator.
 For example, in
 
     @ary = (1, 3, sort 4, 2);
-    print @ary;		# prints 1324
+    print @ary;         # prints 1324
 
 the commas on the right of the C<sort> are evaluated before the C<sort>,
 but the commas on the left are evaluated after.  In other words,
@@ -105,13 +105,13 @@ then act like a simple TERM with regard to the preceding expression.
 Be careful with parentheses:
 
     # These evaluate exit before doing the print:
-    print($foo, exit);	# Obviously not what you want.
-    print $foo, exit;	# Nor is this.
+    print($foo, exit);  # Obviously not what you want.
+    print $foo, exit;   # Nor is this.
 
     # These do the print before evaluating exit:
-    (print $foo), exit;	# This is what you want.
-    print($foo), exit;	# Or this.
-    print ($foo), exit;	# Or even this.
+    (print $foo), exit; # This is what you want.
+    print($foo), exit;  # Or this.
+    print ($foo), exit; # Or even this.
 
 Also note that
 
@@ -188,10 +188,10 @@ has a value that is not the empty string and matches the pattern
 C</^[a-zA-Z]*[0-9]*\z/>, the increment is done as a string, preserving each
 character within its range, with carry:
 
-    print ++($foo = "99");	# prints "100"
-    print ++($foo = "a0");	# prints "a1"
-    print ++($foo = "Az");	# prints "Ba"
-    print ++($foo = "zz");	# prints "aaa"
+    print ++($foo = "99");      # prints "100"
+    print ++($foo = "a0");      # prints "a1"
+    print ++($foo = "Az");      # prints "Ba"
+    print ++($foo = "zz");      # prints "aaa"
 
 C<undef> is always treated as numeric, and in particular is changed
 to C<0> before incrementing (so that a post-increment of an undef value
@@ -342,12 +342,12 @@ negative), it returns an empty string
 or an empty list, depending on the context.
 X<x>
 
-    print '-' x 80;		# print row of dashes
+    print '-' x 80;             # print row of dashes
 
-    print "\t" x ($tab/8), ' ' x ($tab%8);	# tab over
+    print "\t" x ($tab/8), ' ' x ($tab%8);      # tab over
 
-    @ones = (1) x 80;		# a list of 80 1's
-    @ones = (5) x @ones;	# set all elements to 5
+    @ones = (1) x 80;           # a list of 80 1's
+    @ones = (5) x @ones;        # set all elements to 5
 
 
 =head2 Additive Operators
@@ -409,22 +409,22 @@ arguments within parentheses are taken to be of highest precedence,
 just like a normal function call.  For example,
 because named unary operators are higher precedence than C<||>:
 
-    chdir $foo    || die;	# (chdir $foo) || die
-    chdir($foo)   || die;	# (chdir $foo) || die
-    chdir ($foo)  || die;	# (chdir $foo) || die
-    chdir +($foo) || die;	# (chdir $foo) || die
+    chdir $foo    || die;       # (chdir $foo) || die
+    chdir($foo)   || die;       # (chdir $foo) || die
+    chdir ($foo)  || die;       # (chdir $foo) || die
+    chdir +($foo) || die;       # (chdir $foo) || die
 
 but, because C<"*"> is higher precedence than named operators:
 
-    chdir $foo * 20;	# chdir ($foo * 20)
-    chdir($foo) * 20;	# (chdir $foo) * 20
-    chdir ($foo) * 20;	# (chdir $foo) * 20
-    chdir +($foo) * 20;	# chdir ($foo * 20)
+    chdir $foo * 20;    # chdir ($foo * 20)
+    chdir($foo) * 20;   # (chdir $foo) * 20
+    chdir ($foo) * 20;  # (chdir $foo) * 20
+    chdir +($foo) * 20; # chdir ($foo * 20)
 
-    rand 10 * 20;	# rand (10 * 20)
-    rand(10) * 20;	# (rand 10) * 20
-    rand (10) * 20;	# (rand 10) * 20
-    rand +(10) * 20;	# rand (10 * 20)
+    rand 10 * 20;       # rand (10 * 20)
+    rand(10) * 20;      # (rand 10) * 20
+    rand (10) * 20;     # (rand 10) * 20
+    rand +(10) * 20;    # rand (10 * 20)
 
 Regarding precedence, the filetest operators, like C<-f>, C<-M>, etc. are
 treated like named unary operators, but they don't follow this functional
@@ -906,16 +906,16 @@ The C<||>, C<//> and C<&&> operators return the last value evaluated
 portable way to find out the home directory might be:
 
     $home =  $ENV{HOME}
-	  // $ENV{LOGDIR}
-	  // (getpwuid($<))[7]
-	  // die "You're homeless!\n";
+          // $ENV{LOGDIR}
+          // (getpwuid($<))[7]
+          // die "You're homeless!\n";
 
 In particular, this means that you shouldn't use this
 for selecting between two aggregates for assignment:
 
-    @a = @b || @c;		# this is wrong
-    @a = scalar(@b) || @c;	# really meant this
-    @a = @b ? @b : @c;		# this works fine, though
+    @a = @b || @c;              # this is wrong
+    @a = scalar(@b) || @c;      # really meant this
+    @a = @b ? @b : @c;          # this works fine, though
 
 As alternatives to C<&&> and C<||> when used for
 control flow, Perl provides the C<and> and C<or> operators (see below).
@@ -924,12 +924,12 @@ and C<"or"> is much lower, however, so that you can safely use them after a
 list operator without the need for parentheses:
 
     unlink "alpha", "beta", "gamma"
-	    or gripe(), next LINE;
+            or gripe(), next LINE;
 
 With the C-style operators that would have been written like this:
 
     unlink("alpha", "beta", "gamma")
-	    || (gripe(), next LINE);
+            || (gripe(), next LINE);
 
 It would be even more readable to write that this way:
 
@@ -955,7 +955,7 @@ versions of Perl might burn a lot of memory when you write something
 like this:
 
     for (1 .. 1_000_000) {
-	# code
+        # code
     }
 
 The range operator also works on strings, using the magical
@@ -1107,7 +1107,7 @@ argument before the C<:> is returned, otherwise the argument after the
 C<:> is returned.  For example:
 
     printf "I have %d dog%s.\n", $n,
-	    ($n == 1) ? "" : "s";
+            ($n == 1) ? "" : "s";
 
 Scalar or list context propagates downward into the 2nd
 or 3rd argument, whichever is selected.
@@ -1294,7 +1294,7 @@ Binary C<"or"> returns the logical disjunction of the two surrounding
 expressions.  It's equivalent to C<||> except for the very low precedence.
 This makes it useful for control flow:
 
-    print FH $data		or die "Can't write to FH: $!";
+    print FH $data              or die "Can't write to FH: $!";
 
 This means that it short-circuits: the right expression is evaluated
 only if the left expression is false.  Due to its precedence, you must
@@ -1354,19 +1354,19 @@ for these behaviors, but also provides a way for you to choose your
 quote character for any of them.  In the following table, a C<{}> represents
 any pair of delimiters you choose.
 
-    Customary  Generic        Meaning	     Interpolates
-	''	 q{}	      Literal		  no
-	""	qq{}	      Literal		  yes
-	``	qx{}	      Command		  yes*
-		qw{}	     Word list		  no
-	//	 m{}	   Pattern match	  yes*
-		qr{}	      Pattern		  yes*
-		 s{}{}	    Substitution	  yes*
-		tr{}{}	  Transliteration	  no (but see below)
-		 y{}{}	  Transliteration	  no (but see below)
+    Customary  Generic        Meaning        Interpolates
+        ''       q{}          Literal             no
+        ""      qq{}          Literal             yes
+        ``      qx{}          Command             yes*
+                qw{}         Word list            no
+        //       m{}       Pattern match          yes*
+                qr{}          Pattern             yes*
+                 s{}{}      Substitution          yes*
+                tr{}{}    Transliteration         no (but see below)
+                 y{}{}    Transliteration         no (but see below)
         <<EOF                 here-doc            yes*
 
-	* unless the delimiter is ''.
+        * unless the delimiter is ''.
 
 Non-bracketing delimiters use the same character fore and aft, but the four
 sorts of ASCII brackets (round, angle, square, curly) all nest, which means
@@ -1570,15 +1570,15 @@ The following escape sequences are available in constructs that interpolate,
 but not in transliterations.
 X<\l> X<\u> X<\L> X<\U> X<\E> X<\Q> X<\F>
 
-    \l		lowercase next character only
-    \u		titlecase (not uppercase!) next character only
-    \L		lowercase all characters till \E or end of string
-    \U		uppercase all characters till \E or end of string
-    \F		foldcase all characters till \E or end of string
+    \l          lowercase next character only
+    \u          titlecase (not uppercase!) next character only
+    \L          lowercase all characters till \E or end of string
+    \U          uppercase all characters till \E or end of string
+    \F          foldcase all characters till \E or end of string
     \Q          quote (disable) pattern metacharacters till \E or
                 end of string
-    \E		end either case modification or quoted section
-		(whichever was last seen)
+    \E          end either case modification or quoted section
+                (whichever was last seen)
 
 See L<perlfunc/quotemeta> for the exact definition of characters that
 are quoted by C<\Q>.
@@ -1694,25 +1694,25 @@ is equivalent to
 The result may be used as a subpattern in a match:
 
     $re = qr/$pattern/;
-    $string =~ /foo${re}bar/;	# can be interpolated in other
+    $string =~ /foo${re}bar/;   # can be interpolated in other
                                 # patterns
-    $string =~ $re;		# or used standalone
-    $string =~ /$re/;		# or this way
+    $string =~ $re;             # or used standalone
+    $string =~ /$re/;           # or this way
 
 Since Perl may compile the pattern at the moment of execution of the C<qr()>
 operator, using C<qr()> may have speed advantages in some situations,
 notably if the result of C<qr()> is used standalone:
 
     sub match {
-	my $patterns = shift;
-	my @compiled = map qr/$_/i, @$patterns;
-	grep {
-	    my $success = 0;
-	    foreach my $pat (@compiled) {
-		$success = 1, last if /$pat/;
-	    }
-	    $success;
-	} @_;
+        my $patterns = shift;
+        my @compiled = map qr/$_/i, @$patterns;
+        grep {
+            my $success = 0;
+            foreach my $pat (@compiled) {
+                $success = 1, last if /$pat/;
+            }
+            $success;
+        } @_;
     }
 
 Precompilation of the pattern into an internal representation at
@@ -1723,15 +1723,15 @@ we did not use C<qr()> operator.)
 
 Options (specified by the following modifiers) are:
 
-    m	Treat string as multiple lines.
-    s	Treat string as single line. (Make . match a newline)
-    i	Do case-insensitive pattern matching.
-    x	Use extended regular expressions.
-    p	When matching preserve a copy of the matched string so
+    m   Treat string as multiple lines.
+    s   Treat string as single line. (Make . match a newline)
+    i   Do case-insensitive pattern matching.
+    x   Use extended regular expressions.
+    p   When matching preserve a copy of the matched string so
         that ${^PREMATCH}, ${^MATCH}, ${^POSTMATCH} will be
         defined (ignored starting in v5.20) as these are always
         defined starting in that relese
-    o	Compile pattern only once.
+    o   Compile pattern only once.
     a   ASCII-restrict: Use ASCII for \d, \s, \w; specifying two
         a's further restricts things to that that no ASCII
         character will match a non-ASCII one under /i.
@@ -1863,7 +1863,7 @@ Examples:
  open(TTY, "+</dev/tty")
     || die "can't access /dev/tty: $!";
 
- <TTY> =~ /^y/i && foo();	# do foo if desired
+ <TTY> =~ /^y/i && foo();       # do foo if desired
 
  if (/Version: *([0-9.]*)/) { $version = $1; }
 
@@ -1919,9 +1919,9 @@ Examples:
     # scalar context
     local $/ = "";
     while ($paragraph = <>) {
-	while ($paragraph =~ /\p{Ll}['")]*[.!?]+['")]*\s/g) {
-	    $sentences++;
-	}
+        while ($paragraph =~ /\p{Ll}['")]*[.!?]+['")]*\s/g) {
+            $sentences++;
+        }
     }
     say $sentences;
 
@@ -2025,11 +2025,11 @@ something in each file of a set of files, for instance.  Only C<m??>
 patterns local to the current package are reset.
 
     while (<>) {
-	if (m?^$?) {
-			    # blank line between header and body
-	}
+        if (m?^$?) {
+                            # blank line between header and body
+        }
     } continue {
-	reset if eof;	    # clear m?? status for next file
+        reset if eof;       # clear m?? status for next file
     }
 
 Another example switched the first "latin1" encoding it finds
@@ -2078,7 +2078,7 @@ expression is used instead.  See L<perlre> for further explanation on these.
 Options are as with C<m//> with the addition of the following replacement
 specific options:
 
-    e	Evaluate the right side as an expression.
+    e   Evaluate the right side as an expression.
     ee  Evaluate the right side as a string then eval the
         result.
     r   Return substitution and leave the original string
@@ -2099,33 +2099,33 @@ to be C<eval>ed before being run as a Perl expression.
 
 Examples:
 
-    s/\bgreen\b/mauve/g;	      # don't change wintergreen
+    s/\bgreen\b/mauve/g;              # don't change wintergreen
 
     $path =~ s|/usr/bin|/usr/local/bin|;
 
     s/Login: $foo/Login: $bar/; # run-time pattern
 
-    ($foo = $bar) =~ s/this/that/;	# copy first, then
+    ($foo = $bar) =~ s/this/that/;      # copy first, then
                                         # change
-    ($foo = "$bar") =~ s/this/that/;	# convert to string,
+    ($foo = "$bar") =~ s/this/that/;    # convert to string,
                                         # copy, then change
-    $foo = $bar =~ s/this/that/r;	# Same as above using /r
+    $foo = $bar =~ s/this/that/r;       # Same as above using /r
     $foo = $bar =~ s/this/that/r
-                =~ s/that/the other/r;	# Chained substitutes
+                =~ s/that/the other/r;  # Chained substitutes
                                         # using /r
-    @foo = map { s/this/that/r } @bar	# /r is very useful in
+    @foo = map { s/this/that/r } @bar   # /r is very useful in
                                         # maps
 
     $count = ($paragraph =~ s/Mister\b/Mr./g);  # get change-cnt
 
     $_ = 'abc123xyz';
-    s/\d+/$&*2/e;		# yields 'abc246xyz'
-    s/\d+/sprintf("%5d",$&)/e;	# yields 'abc  246xyz'
-    s/\w/$& x 2/eg;		# yields 'aabbcc  224466xxyyzz'
+    s/\d+/$&*2/e;               # yields 'abc246xyz'
+    s/\d+/sprintf("%5d",$&)/e;  # yields 'abc  246xyz'
+    s/\w/$& x 2/eg;             # yields 'aabbcc  224466xxyyzz'
 
-    s/%(.)/$percent{$1}/g;	# change percent escapes; no /e
-    s/%(.)/$percent{$1} || $&/ge;	# expr now, so /e
-    s/^=(\w+)/pod($1)/ge;	# use function call
+    s/%(.)/$percent{$1}/g;      # change percent escapes; no /e
+    s/%(.)/$percent{$1} || $&/ge;       # expr now, so /e
+    s/^=(\w+)/pod($1)/ge;       # use function call
 
     $_ = 'abc123xyz';
     $x = s/abc/def/r;           # $x is 'def123xyz' and
@@ -2148,21 +2148,21 @@ Examples:
 
     # Delete (most) C comments.
     $program =~ s {
-	/\*	# Match the opening delimiter.
-	.*?	# Match a minimal number of characters.
-	\*/	# Match the closing delimiter.
+        /\*     # Match the opening delimiter.
+        .*?     # Match a minimal number of characters.
+        \*/     # Match the closing delimiter.
     } []gsx;
 
-    s/^\s*(.*?)\s*$/$1/;	# trim whitespace in $_,
+    s/^\s*(.*?)\s*$/$1/;        # trim whitespace in $_,
                                 # expensively
 
-    for ($variable) {		# trim whitespace in $variable,
+    for ($variable) {           # trim whitespace in $variable,
                                 # cheap
-	s/^\s+//;
-	s/\s+$//;
+        s/^\s+//;
+        s/\s+$//;
     }
 
-    s/([^ ]*) *([^ ]*)/$2 $1/;	# reverse 1st two fields
+    s/([^ ]*) *([^ ]*)/$2 $1/;  # reverse 1st two fields
 
 Note the use of C<$> instead of C<\> in the last example.  Unlike
 B<sed>, we use the \<I<digit>> form only in the left hand side.
@@ -2195,7 +2195,7 @@ the delimiter or backslash is interpolated.
 
     $foo = q!I said, "You said, 'She said it.'"!;
     $bar = q('This is it.');
-    $baz = '\n';		# a two-character string
+    $baz = '\n';                # a two-character string
 
 =item C<qq/I<STRING>/>
 X<qq> X<quote, double> X<"> X<"">
@@ -2206,8 +2206,8 @@ A double-quoted, interpolated string.
 
     $_ .= qq
      (*** The previous line contains the naughty word "$1".\n)
-		if /\b(tcl|java|python)\b/i;      # :-)
-    $baz = "\n";		# a one-character string
+                if /\b(tcl|java|python)\b/i;      # :-)
+    $baz = "\n";                # a one-character string
 
 =item C<qx/I<STRING>/>
 X<qx> X<`> X<``> X<backtick>
@@ -2385,11 +2385,11 @@ character sets in full.
 
 Options:
 
-    c	Complement the SEARCHLIST.
-    d	Delete found but unreplaced characters.
-    s	Squash duplicate replaced characters.
-    r	Return the modified string and leave the original string
-	untouched.
+    c   Complement the SEARCHLIST.
+    d   Delete found but unreplaced characters.
+    s   Squash duplicate replaced characters.
+    r   Return the modified string and leave the original string
+        untouched.
 
 If the C</c> modifier is specified, the I<SEARCHLIST> character set
 is complemented.  If the C</d> modifier is specified, any characters
@@ -2409,15 +2409,15 @@ squashing character sequences in a class.
 
 Examples:
 
-    $ARGV[1] =~ tr/A-Z/a-z/;	# canonicalize to lower case ASCII
+    $ARGV[1] =~ tr/A-Z/a-z/;    # canonicalize to lower case ASCII
 
-    $cnt = tr/*/*/;		# count the stars in $_
+    $cnt = tr/*/*/;             # count the stars in $_
 
-    $cnt = $sky =~ tr/*/*/;	# count the stars in $sky
+    $cnt = $sky =~ tr/*/*/;     # count the stars in $sky
 
-    $cnt = tr/0-9//;		# count the digits in $_
+    $cnt = tr/0-9//;            # count the digits in $_
 
-    tr/a-zA-Z//s;		# bookkeeper -> bokeper
+    tr/a-zA-Z//s;               # bookkeeper -> bokeper
 
     ($HOST = $host) =~ tr/a-z/A-Z/;
      $HOST = $host  =~ tr/a-z/A-Z/r;   # same thing
@@ -2425,13 +2425,13 @@ Examples:
     $HOST = $host =~ tr/a-z/A-Z/r    # chained with s///r
                   =~ s/:/ -p/r;
 
-    tr/a-zA-Z/ /cs;		# change non-alphas to single space
+    tr/a-zA-Z/ /cs;             # change non-alphas to single space
 
     @stripped = map tr/a-zA-Z/ /csr, @original;
-				# /r with map
+                                # /r with map
 
     tr [\200-\377]
-       [\000-\177];		# wickedly delete 8th bit
+       [\000-\177];             # wickedly delete 8th bit
 
 If multiple transliterations are given for a character, only the
 first one is used:
@@ -2496,11 +2496,11 @@ other quoting construct.
 Just as in the shell, a backslashed bareword following the C<<< << >>>
 means the same thing as a single-quoted string does:
 
-	$cost = <<'VISTA';  # hasta la ...
+        $cost = <<'VISTA';  # hasta la ...
     That'll be $10 please, ma'am.
     VISTA
 
-	$cost = <<\VISTA;   # Same thing!
+        $cost = <<\VISTA;   # Same thing!
     That'll be $10 please, ma'am.
     VISTA
 
@@ -2681,7 +2681,7 @@ Thus:
 or:
 
     m/
-      bar	# NOT a comment, this slash / terminated m//!
+      bar       # NOT a comment, this slash / terminated m//!
      /x
 
 do not form legal quoted expressions.   The quoted part ends on the
@@ -3004,17 +3004,17 @@ gives you standard input.  The C<@ARGV> array is then processed as a list
 of filenames.  The loop
 
     while (<>) {
-	...			# code for each line
+        ...                     # code for each line
     }
 
 is equivalent to the following Perl-like pseudo code:
 
     unshift(@ARGV, '-') unless @ARGV;
     while ($ARGV = shift) {
-	open(ARGV, $ARGV);
-	while (<ARGV>) {
-	    ...		# code for each line
-	}
+        open(ARGV, $ARGV);
+        while (<ARGV>) {
+            ...         # code for each line
+        }
     }
 
 except that it isn't so cumbersome to say, and will actually work.
@@ -3065,15 +3065,15 @@ If you want to pass switches into your script, you can use one of the
 C<Getopts> modules or put a loop on the front like this:
 
     while ($_ = $ARGV[0], /^-/) {
-	shift;
+        shift;
         last if /^--$/;
-	if (/^-D(.*)/) { $debug = $1 }
-	if (/^-v/)     { $verbose++  }
-	# ...		# other switches
+        if (/^-D(.*)/) { $debug = $1 }
+        if (/^-v/)     { $verbose++  }
+        # ...           # other switches
     }
 
     while (<>) {
-	# ...		# code for each line
+        # ...           # code for each line
     }
 
 The C<< <> >> symbol will return C<undef> for end-of-file only once.
@@ -3108,15 +3108,15 @@ internal function directly as C<glob($foo)>, which is probably the right
 way to have done it in the first place.)  For example:
 
     while (<*.c>) {
-	chmod 0644, $_;
+        chmod 0644, $_;
     }
 
 is roughly equivalent to:
 
     open(FOO, "echo *.c | tr -s ' \t\r\f' '\\012\\012\\012\\012'|");
     while (<FOO>) {
-	chomp;
-	chmod 0644, $_;
+        chomp;
+        chmod 0644, $_;
     }
 
 except that the globbing is actually done internally using the standard
@@ -3171,7 +3171,7 @@ and this all reduces to one string internally.  Likewise, if
 you say
 
     foreach $file (@filenames) {
-	if (-s $file > 5 + 100 * 2**16) {  }
+        if (-s $file > 5 + 100 * 2**16) {  }
     }
 
 the compiler precomputes the number which that expression
@@ -3200,23 +3200,23 @@ The granularity for such extension or truncation is one or more
 bytes.
 
     # ASCII-based examples
-    print "j p \n" ^ " a h";        	# prints "JAPH\n"
-    print "JA" | "  ph\n";          	# prints "japh\n"
-    print "japh\nJunk" & '_____';   	# prints "JAPH\n";
-    print 'p N$' ^ " E<H\n";		# prints "Perl\n";
+    print "j p \n" ^ " a h";            # prints "JAPH\n"
+    print "JA" | "  ph\n";              # prints "japh\n"
+    print "japh\nJunk" & '_____';       # prints "JAPH\n";
+    print 'p N$' ^ " E<H\n";            # prints "Perl\n";
 
 If you are intending to manipulate bitstrings, be certain that
 you're supplying bitstrings: If an operand is a number, that will imply
 a B<numeric> bitwise operation.  You may explicitly show which type of
 operation you intend by using C<""> or C<0+>, as in the examples below.
 
-    $foo =  150  |  105;	# yields 255  (0x96 | 0x69 is 0xFF)
-    $foo = '150' |  105;	# yields 255
-    $foo =  150  | '105';	# yields 255
-    $foo = '150' | '105';	# yields string '155' (under ASCII)
+    $foo =  150  |  105;        # yields 255  (0x96 | 0x69 is 0xFF)
+    $foo = '150' |  105;        # yields 255
+    $foo =  150  | '105';       # yields 255
+    $foo = '150' | '105';       # yields string '155' (under ASCII)
 
-    $baz = 0+$foo & 0+$bar;	# both ops explicitly numeric
-    $biz = "$foo" ^ "$bar";	# both ops explicitly stringy
+    $baz = 0+$foo & 0+$bar;     # both ops explicitly numeric
+    $biz = "$foo" ^ "$bar";     # both ops explicitly stringy
 
 This somewhat unpredictable behavior can be avoided with the experimental
 "bitwise" feature, new in Perl 5.22.  You can enable it via S<C<use feature
@@ -3228,17 +3228,17 @@ after each operator (C<~. |. &. ^.>) forces it to treat its operands as
 strings:
 
     use experimental "bitwise";
-    $foo =  150  |  105;	# yields 255  (0x96 | 0x69 is 0xFF)
-    $foo = '150' |  105;	# yields 255
-    $foo =  150  | '105';	# yields 255
-    $foo = '150' | '105';	# yields 255
-    $foo =  150  |. 105;	# yields string '155' (under ASCII)
-    $foo = '150' |. 105;	# yields string '155'
-    $foo =  150  |.'105';	# yields string '155'
-    $foo = '150' |.'105';	# yields string '155'
+    $foo =  150  |  105;        # yields 255  (0x96 | 0x69 is 0xFF)
+    $foo = '150' |  105;        # yields 255
+    $foo =  150  | '105';       # yields 255
+    $foo = '150' | '105';       # yields 255
+    $foo =  150  |. 105;        # yields string '155' (under ASCII)
+    $foo = '150' |. 105;        # yields string '155'
+    $foo =  150  |.'105';       # yields string '155'
+    $foo = '150' |.'105';       # yields string '155'
 
-    $baz = $foo &  $bar;	# both operands numeric
-    $biz = $foo ^. $bar;	# both operands stringy
+    $baz = $foo &  $bar;        # both operands numeric
+    $biz = $foo ^. $bar;        # both operands stringy
 
 The assignment variants of these operators (C<&= |= ^= &.= |.= ^.=>)
 behave likewise under the feature.
@@ -3299,11 +3299,11 @@ decimal places.  See Knuth, volume II, for a more robust treatment of
 this topic.
 
     sub fp_equal {
-	my ($X, $Y, $POINTS) = @_;
-	my ($tX, $tY);
-	$tX = sprintf("%.${POINTS}g", $X);
-	$tY = sprintf("%.${POINTS}g", $Y);
-	return $tX eq $tY;
+        my ($X, $Y, $POINTS) = @_;
+        my ($tX, $tY);
+        $tX = sprintf("%.${POINTS}g", $X);
+        $tY = sprintf("%.${POINTS}g", $Y);
+        return $tX eq $tY;
     }
 
 The POSIX module (part of the standard perl distribution) implements
@@ -3330,10 +3330,10 @@ they're currently pretty slow.  At the cost of some space and
 considerable speed, they avoid the normal pitfalls associated with
 limited-precision representations.
 
-	use 5.010;
-	use bigint;  # easy interface to Math::BigInt
-	$x = 123456789123456789;
-	say $x * $x;
+        use 5.010;
+        use bigint;  # easy interface to Math::BigInt
+        $x = 123456789123456789;
+        say $x * $x;
     +15241578780673678515622620750190521
 
 Or with rationals:

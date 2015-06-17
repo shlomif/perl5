@@ -182,14 +182,14 @@ into or from subroutines if you don't want to copy the whole
 thing.  It only works when assigning to dynamic variables, not
 lexicals.
 
-    %some_hash = ();			# can't be my()
+    %some_hash = ();                    # can't be my()
     *some_hash = fn( \%another_hash );
     sub fn {
-	local *hashsym = shift;
-	# now use %hashsym normally, and you
-	# will affect the caller's %another_hash
-	my %nhash = (); # do what you want
-	return \%nhash;
+        local *hashsym = shift;
+        # now use %hashsym normally, and you
+        # will affect the caller's %another_hash
+        my %nhash = (); # do what you want
+        return \%nhash;
     }
 
 On return, the reference will overwrite the hash slot in the
@@ -245,8 +245,8 @@ This is just a shorthand for a typeglob assignment at compile time:
 and is I<not> the same as writing:
 
     {
-	package Some_package;
-	sub foo { ... }
+        package Some_package;
+        sub foo { ... }
     }
 
 In the first two versions, the body of the subroutine is
@@ -259,7 +259,7 @@ something like this:
     $main::name = "barney";
 
     sub Some_package::foo {
-	print "in ", __PACKAGE__, ": \$name is '$name'\n";
+        print "in ", __PACKAGE__, ": \$name is '$name'\n";
     }
 
     Some_package::foo();
@@ -531,14 +531,14 @@ declare subroutines that are then visible as list or unary operators for
 the rest of the current file.  This will not work if you use C<require>
 instead of C<use>.  With C<require> you can get into this problem:
 
-    require Cwd;		# make Cwd:: accessible
+    require Cwd;                # make Cwd:: accessible
     $here = Cwd::getcwd();
 
-    use Cwd;			# import names from Cwd::
+    use Cwd;                    # import names from Cwd::
     $here = getcwd();
 
-    require Cwd;	    	# make Cwd:: accessible
-    $here = getcwd(); 		# oops! no main::getcwd()
+    require Cwd;                # make Cwd:: accessible
+    $here = getcwd();           # oops! no main::getcwd()
 
 In general, C<use Module ()> is recommended over C<require Module>,
 because it determines module availability at compile time, not in the

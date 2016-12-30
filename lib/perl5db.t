@@ -27,6 +27,8 @@ BEGIN {
         exit 0;
     }
     $ENV{PERL_RL} = 'Perl'; # Suppress system Term::ReadLine::Gnu
+    # perl 5 RT #130445 - stray PERLDB_OPTS causing problems
+    delete $ENV{PERLDB_OPTS};
 }
 
 plan(123);

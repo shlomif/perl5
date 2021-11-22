@@ -47,6 +47,12 @@ use warnings;
     }
     ok(regularfunc(), 'true in regular sub');
 
+    my sub lexicalfunc {
+        use builtin 'true';
+        return true;
+    }
+    ok(lexicalfunc(), 'true in lexical sub');
+
     my $coderef = sub {
         use builtin 'true';
         return true;

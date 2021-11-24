@@ -52,7 +52,6 @@ XS(XS_builtin_import);
 XS(XS_builtin_import)
 {
     dXSARGS;
-    int i;
 
     if(!PL_compcv)
         Perl_croak(aTHX_
@@ -64,7 +63,7 @@ XS(XS_builtin_import)
     SAVESPTR(PL_comppad);      PL_comppad      = PadlistARRAY(CvPADLIST(PL_compcv))[1];
     SAVESPTR(PL_curpad);       PL_curpad       = PadARRAY(PL_comppad);
 
-    for(i = 1; i < items; i++) {
+    for(int i = 1; i < items; i++) {
         SV *sym = ST(i);
         if(strEQ(SvPV_nolen(sym), "import")) goto unavailable;
 

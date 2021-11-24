@@ -70,6 +70,8 @@ truth and most defined, non-empty and non-zero values are considered "true"
 by perl, this one is special in that L</isbool> considers it to be a
 distinguished boolean value.
 
+This gives an equivalent value to expressions like C<!!1> or C<!0>.
+
 =head2 false
 
     $val = false;
@@ -77,6 +79,8 @@ distinguished boolean value.
 Returns the boolean fiction value. While any non-true scalar value is
 considered "false" by perl, this one is special in that L</isbool> considers
 it to be a distinguished boolean value.
+
+This gives an equivalent value to expressions like C<!!0> or C<!1>.
 
 =head2 isbool
 
